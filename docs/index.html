@@ -46,6 +46,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
+body{padding-top:env(safe-area-inset-top,0px)}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.4}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:#0E1014}
 .wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
