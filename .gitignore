@@ -7,3 +7,7 @@ build/tok.js
 build/project.txt
 export/
 .firebase/
+test/shots/
+test/index.html
+test/logo.png
+test/dbg*.py
