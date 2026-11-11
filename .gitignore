@@ -1,0 +1,9 @@
+build/.tok
+build/.pw
+build/node_modules/
+build/package*.json
+build/import.mjs
+build/tok.js
+build/project.txt
+export/
+.firebase/

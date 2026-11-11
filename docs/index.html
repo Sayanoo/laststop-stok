@@ -1,0 +1,975 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1A0E0A"><link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="logo.png"><link rel="apple-touch-icon" href="logo.png">
+<style>
+#loginGate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:radial-gradient(120% 90% at 0% 0%,#4A1A0C,#150B08 70%)}
+.lg-card{width:100%;max-width:360px;background:#1E1410;color:#FBEFE6;border-radius:22px;padding:26px 22px;display:grid;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid #3B2A21;font-family:Inter,system-ui,sans-serif}
+.lg-card h2{margin:0;font:800 24px Archivo,system-ui,sans-serif;text-align:center} .lg-card p{margin:0 0 4px;color:#BFA392;text-align:center;font-size:14px}
+.lg-logo{width:96px;height:96px;border-radius:26px;margin:0 auto;box-shadow:0 0 0 3px #FF8A00,0 10px 30px rgba(255,90,20,.5)}
+.lg-card label{display:grid;gap:5px;font-size:13px;color:#BFA392}
+.lg-card input{font:16px Inter,system-ui,sans-serif;padding:12px;border-radius:12px;border:1px solid #3B2A21;background:#130C09;color:#FBEFE6}
+.lg-card .btn{border:0;border-radius:12px;padding:13px;font:700 16px Inter,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,#FF8A00,#F2491B 55%,#C8102E);cursor:pointer}
+.lg-err{color:#FF7A86;font-size:13px;text-align:center;min-height:1em}
+</style>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
+<script src="config.js"></script><script src="shim.js"></script>
+</head><body>
+<title>Last Stop Stok</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one-column mobile tool — sticky header with scan button + 4 tabs, list rows, bottom sheet for actions */
+:root{
+  --bg:#FFF6EE; --surface:#FFFFFF; --sunk:#FCEBDD; --fg:#22140E; --muted:#7D6253; --line:#F1DAC8;
+  --accent:#E8410F; --accent-fg:#FFFFFF; --accent-soft:#FFE4D4;
+  --grad:linear-gradient(135deg,#FF8A00 0%,#F2491B 55%,#C8102E 100%);
+  --ok:#14804A; --ok-bg:#D9F4E3; --warn:#B25E00; --warn-bg:#FFEBC7; --bad:#C8102E; --bad-bg:#FFDCDF; --none:#7D6253; --none-bg:#F3E6DC;
+  --shadow:0 12px 32px rgba(120,40,10,.22);
+  --f-display:"Archivo",system-ui,sans-serif; --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#130C09; --surface:#1E1410; --sunk:#2B1D17; --fg:#FBEFE6; --muted:#BFA392; --line:#3B2A21;
+  --accent:#FF7A2E; --accent-fg:#1A0B04; --accent-soft:#3A1E10;
+  --grad:linear-gradient(135deg,#FF9A1F 0%,#FF5A26 55%,#E0243D 100%);
+  --ok:#5FD896; --ok-bg:#123324; --warn:#FFBE5C; --warn-bg:#3A2A10; --bad:#FF7A86; --bad-bg:#3E1519; --none:#BFA392; --none-bg:#2E211B;
+  --shadow:0 12px 32px rgba(0,0,0,.55); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#130C09; --surface:#1E1410; --sunk:#2B1D17; --fg:#FBEFE6; --muted:#BFA392; --line:#3B2A21;
+  --accent:#FF7A2E; --accent-fg:#1A0B04; --accent-soft:#3A1E10;
+  --grad:linear-gradient(135deg,#FF9A1F 0%,#FF5A26 55%,#E0243D 100%);
+  --ok:#5FD896; --ok-bg:#123324; --warn:#FFBE5C; --warn-bg:#3A2A10; --bad:#FF7A86; --bad-bg:#3E1519; --none:#BFA392; --none-bg:#2E211B;
+  --shadow:0 12px 32px rgba(0,0,0,.55); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.4}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:#1A0E0A}
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;color:#FFF3EA;background:radial-gradient(120% 140% at 0% 0%,#4A1A0C 0%,#24110B 45%,#150B08 100%);box-shadow:0 6px 24px rgba(60,15,5,.35);border-bottom:2px solid transparent;border-image:var(--grad) 1}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.logo{width:46px;height:46px;border-radius:14px;flex:none;object-fit:cover;box-shadow:0 0 0 2px rgba(255,140,40,.9),0 6px 18px rgba(255,90,20,.45)}
+header .btn.ghost{background:rgba(255,255,255,.1);color:#FFF3EA;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 8px}
+h1{font-family:var(--f-display);font-weight:800;font-size:20px;margin:0;letter-spacing:-.01em}
+h1{background:linear-gradient(90deg,#FFFFFF,#FFD2A8);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 small{display:block;font-family:var(--f-body);font-weight:500;font-size:12px;color:#E9B999;-webkit-text-fill-color:#E9B999;letter-spacing:0}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding-bottom:10px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.tile{display:grid;grid-template-columns:1fr auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.tile-main{border:0;background:none;color:var(--fg);text-align:left;padding:10px 12px;cursor:pointer;display:grid;gap:2px;min-width:0}
+.tile-main:hover{background:var(--sunk)}
+.tile-minus{border:0;border-left:1px solid var(--line);background:var(--warn-bg);color:var(--warn);font:800 18px var(--f-display);min-width:56px;cursor:pointer}
+.tile-minus.w{background:var(--bad-bg);color:var(--bad)}
+.tile-minus:disabled{background:var(--sunk);color:var(--muted);cursor:default}
+.tile-minus:active:not(:disabled){filter:brightness(.92)}
+.today{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:18px}
+.today summary{font-weight:600}
+.toast button{margin-left:12px;border:0;background:none;color:inherit;font:700 14px var(--f-body);text-decoration:underline;cursor:pointer;padding:0}
+.tab{border:0;background:rgba(255,255,255,.07);color:#F3D9C7;font:600 13.5px var(--f-body);padding:9px 4px;border-radius:10px;cursor:pointer;display:flex;justify-content:center;gap:5px;align-items:center;min-width:0}
+.tab[aria-selected="true"]{background:var(--grad);color:#fff;box-shadow:0 4px 14px rgba(242,73,27,.45)}
+.badge{font-size:11.5px;min-width:19px;padding:1px 5px;border-radius:99px;background:var(--bad);color:#fff;font-variant-numeric:tabular-nums}
+button{font-family:inherit}
+.btn{border:0;border-radius:10px;padding:10px 14px;font:600 14px var(--f-body);cursor:pointer;background:var(--grad);color:#fff;box-shadow:0 3px 10px rgba(232,65,15,.28);display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.btn.ghost{background:var(--sunk);color:var(--fg);box-shadow:none}
+.btn.danger{background:var(--bad-bg);color:var(--bad);box-shadow:none}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.scanbtn{padding:10px 14px}
+.scanbtn svg{width:20px;height:20px}
+.btn:focus-visible,.tab:focus-visible,.row:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,label.btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+main{padding-block:14px 100px}
+.tools{display:grid;gap:10px;margin-bottom:12px}
+input,select,textarea{font:15px var(--f-body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:99px;padding:6px 12px;font:500 13px var(--f-body);cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--grad);color:#fff;border-color:transparent}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.sum{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer;text-align:left;color:var(--fg)}
+.sum b{display:block;font-family:var(--f-display);font-size:22px;color:var(--accent);font-variant-numeric:tabular-nums}
+.sum span{font-size:12px;color:var(--muted)}
+.sum[aria-pressed="true"]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.seg2{display:inline-flex;background:var(--sunk);border-radius:10px;padding:3px;gap:3px}
+.seg2 button{border:0;background:none;color:var(--muted);font:600 12.5px var(--f-body);padding:5px 10px;border-radius:8px;cursor:pointer}
+.seg2 button[aria-pressed="true"]{background:var(--surface);color:var(--fg)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.group{margin-top:18px}
+.group h2{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(120,40,10,.06)}
+.row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:0;border-top:1px solid var(--line);width:100%;background:none;color:var(--fg);text-align:left;cursor:pointer}
+.row:first-child{border-top:0}
+.row:hover{background:var(--sunk)}
+.rmain{flex:1;min-width:0}
+.rname{font-weight:600;overflow-wrap:anywhere}
+.rsub{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.bc{display:inline-block;width:14px;height:10px;margin-left:5px;vertical-align:0;background:repeating-linear-gradient(90deg,var(--muted) 0 1.5px,transparent 1.5px 3px,var(--muted) 3px 4px,transparent 4px 6px);opacity:.8}
+.rqty{text-align:right;flex:none}
+.rqty b{font-family:var(--f-display);font-size:19px;font-variant-numeric:tabular-nums}
+.rqty small{font-size:12px;color:var(--muted);margin-left:3px}
+.pill{display:inline-block;font:600 11px var(--f-body);padding:2px 8px;border-radius:99px;margin-top:2px;letter-spacing:.02em}
+.p-ok{background:var(--ok-bg);color:var(--ok)}.p-warn{background:var(--warn-bg);color:var(--warn)}.p-bad{background:var(--bad-bg);color:var(--bad)}.p-none{background:var(--none-bg);color:var(--none)}
+.note{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:14px;color:var(--muted);font-size:14px}
+.fab{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:6;box-shadow:var(--shadow);border-radius:99px;padding:13px 20px;font-size:15px}
+.ord-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.ord-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ord-head h3{font-family:var(--f-display);margin:0;font-size:17px}
+.ord-line{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 0;border-top:1px solid var(--line);align-items:center}
+.ord-line:first-of-type{border-top:0}
+.ord-line input,.cnt input{width:84px;padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums}
+.log{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.log-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px 14px;border-top:1px solid var(--line);align-items:center}
+.log-item:first-child{border-top:0}
+.kind{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font:800 16px var(--f-display)}
+.k-in{background:var(--ok-bg);color:var(--ok)}.k-out{background:var(--warn-bg);color:var(--warn)}.k-waste{background:var(--bad-bg);color:var(--bad)}.k-count{background:var(--accent-soft);color:var(--accent)}.k-edit{background:var(--none-bg);color:var(--none)}
+.log-when{font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.stat b{display:block;font-family:var(--f-display);font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+/* count mode */
+.progress{height:8px;background:var(--sunk);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+.progress i{display:block;height:100%;background:var(--grad);border-radius:99px}
+.cnt{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.cnt:first-child{border-top:0}
+.cnt.done{background:var(--accent-soft)}
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-block:10px calc(env(safe-area-inset-bottom,0px) + 10px)}
+.savebar .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,18,14,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 18px) max(16px,env(safe-area-inset-left,0px));box-shadow:var(--shadow)}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:18px}}
+.sheet h2{font-family:var(--f-display);font-size:20px;margin:0 0 2px;text-wrap:balance}
+.sheet .ko{color:var(--muted);font-size:13px;margin-bottom:10px}
+.big{display:flex;align-items:baseline;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
+.big b{font-family:var(--f-display);font-size:40px;font-variant-numeric:tabular-nums;line-height:1}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.seg button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:10px 2px;font:600 13px var(--f-body);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.stepper{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-bottom:10px}
+.stepper button{font:700 22px var(--f-display);border:1px solid var(--line);background:var(--sunk);color:var(--fg);border-radius:10px;cursor:pointer}
+.stepper input{text-align:center;font:700 22px var(--f-display);font-variant-numeric:tabular-nums}
+.hint{font-size:13px;color:var(--muted);margin:2px 0 12px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form label{display:grid;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500;min-width:0}
+.form .full{grid-column:1/-1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.actions .btn{flex:1}
+details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-weight:600}
+.bclist{display:grid;gap:6px;margin:8px 0}
+.bcrow{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--sunk);border-radius:10px;padding:7px 10px;font-size:13.5px}
+.bcrow code{font-size:13px;overflow-wrap:anywhere}
+.scanbox{display:grid;gap:10px}
+.scanbox .camera{padding:18px;font-size:16px}
+.camera svg{width:24px;height:24px}
+.found{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:6px}
+.pick{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.pick .row{padding:9px 12px}
+.toggle{display:flex;align-items:center;gap:10px;font-size:14px;background:var(--sunk);border-radius:10px;padding:10px 12px}
+.toggle input{width:20px;height:20px;flex:none}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:30;font-weight:500;max-width:calc(100% - 32px)}
+.ro{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+textarea.copy{min-height:140px;font-size:13px;margin-top:8px}
+.rhead{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px}
+.rhead div{background:var(--sunk);border-radius:10px;padding:8px 10px;min-width:0}
+.rhead b{display:block;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.rhead span{font-size:12px;color:var(--muted)}
+.rline{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px}
+.rline.off{opacity:.55}
+.rline.low{border-color:var(--warn)}
+.rline .top{display:flex;gap:10px;align-items:flex-start}
+.rline .top input[type=checkbox]{width:20px;height:20px;flex:none;margin-top:2px}
+.rline .nums{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rline label{display:grid;gap:3px;font-size:12px;color:var(--muted);min-width:0}
+.rlines{display:grid;gap:8px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;vertical-align:-3px;margin-right:6px}
+@media (prefers-reduced-motion:no-preference){.spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}}
+@media (max-width:420px){.summary{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:1fr}.tab{font-size:12px;padding:9px 2px}.tiles{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div class="brand"><img class="logo" src="data:image/webp;base64,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" alt="Last Stop logosu"><h1>Last Stop Stok<small id="sync">Bağlanıyor…</small></h1></div>
+      <div style="display:flex;gap:6px">
+      <button class="btn ghost scanbtn" id="rcptBtn" aria-label="Fiş fotoğrafından mal girişi" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3"/></svg>Fiş</button>
+      <button class="btn scanbtn" id="scanBtn" aria-label="Barkod okut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Okut</button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="stok" aria-selected="true">Stok</button>
+      <button class="tab" role="tab" data-tab="cikis" aria-selected="false">Çıkış</button>
+      <button class="tab" role="tab" data-tab="sayim" aria-selected="false">Sayım</button>
+      <button class="tab" role="tab" data-tab="siparis" aria-selected="false">Sipariş <span class="badge" id="ordBadge" hidden>0</span></button>
+      <button class="tab" role="tab" data-tab="hareket" aria-selected="false">Hareket</button>
+    </div>
+  </div>
+</header>
+<main class="wrap" id="main">
+  <div class="note">Stok listesi yükleniyor. Ürünler, dükkândaki herkesin telefonunda aynı anda güncellenir.</div>
+</main>
+<button class="btn fab" id="fab" hidden>+ Ürün ekle</button>
+<div id="saveRoot"></div>
+<div id="sheetRoot"></div>
+<div id="toastRoot"></div>
+<input type="file" id="camIn" accept="image/*" capture="environment" class="vh" tabindex="-1" aria-hidden="true">
+<input type="file" id="rcptIn" accept="image/jpeg,image/png,image/webp" multiple class="vh" tabindex="-1" aria-hidden="true">
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script>
+const CATS=["Et & Tavuk","Dondurulmuş","Sebze & Meyve","Peynir & Süt","Sos","Tortilla & Ekmek","Konserve & Kuru gıda","Baharat","Yağ","İçecek","Ambalaj & Temizlik"];
+const LOCS=["Dondurucu","Buzdolabı","Kuru depo","Sebze / Hal","İçecek dolabı","Ambalaj & Temizlik"];
+const SUPPLIERS=["Asel Food","Green Mart","Wonplus Mart","Coupang","Costco","Diğer"];
+const UNITS=["paket","koli","adet","kg","box","şişe","kutu","teneke","kavanoz","bidon","rulo","çuval"];
+const WASTE_REASONS=["Bozuldu / çürüdü","Son kullanma geçti","Düştü / döküldü","Yanlış sipariş","Diğer"];
+const KIND_LABEL={in:"+ Geldi",out:"− Kullanıldı",waste:"✕ Zayi",count:"= Sayım"};
+const S={items:[],moves:[],tab:"stok",q:"",cat:"Tümü",status:"all",groupBy:"cat",canWrite:true,uid:null,names:{},loaded:false,orderEdits:{},countLoc:LOCS[0],countDraft:{},serial:null};
+let db=null,userCap=null,sampleCap=null,imgLimits=null;
+S.receipts=[];
+S.lists={suppliers:[...SUPPLIERS],units:[...UNITS]}; S.counts=[]; S.countUnit={};
+const sups=()=>S.lists.suppliers, units=()=>S.lists.units;
+const withCur=(arr,v)=>v&&!arr.includes(v)?[...arr,v]:arr;
+const dt=d=>{const x=new Date(d);return x.toLocaleDateString("tr-TR",{day:"2-digit",month:"2-digit",year:"numeric"})+" "+x.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})};
+const nameOf=id=>id?(S.names[id]||"…"):"—";
+S.rcptDirect=(()=>{const v=(()=>{try{return JSON.parse(localStorage.getItem("ls-rcpt-direct"))}catch(_){return null}})();return v==null?true:!!v})();
+const findDup=r=>r.total!=null&&S.receipts.find(x=>x.supplier===r.supplier&&x.date===r.date&&x.total===r.total);
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf=new Intl.NumberFormat("tr-TR",{maximumFractionDigits:2});
+const fmt=n=>n==null||n===""?"—":nf.format(n);
+const won=n=>n==null?"—":nf.format(Math.round(n))+" ₩";
+const num=v=>{if(v==null)return null;const s=String(v).trim().replace(/\s/g,"").replace(",",".");if(s==="")return null;const n=Number(s);return isFinite(n)?n:null};
+const slug=s=>(s||"urun").toLowerCase().replace(/ç/g,"c").replace(/ğ/g,"g").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ş/g,"s").replace(/ü/g,"u").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)||"urun";
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(_){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};
+S.countDraft=store.get("ls-count-draft")||{}; S.groupBy=store.get("ls-group")||"cat";
+
+function status(it){
+  if(it.qty==null) return {k:"none",t:"Sayılmadı"};
+  if(it.qty<=0) return {k:"bad",t:"Bitti"};
+  if(it.min!=null && it.qty<=it.min) return {k:"warn",t:"Az kaldı"};
+  return {k:"ok",t:"Var"};
+}
+const needsOrder=it=>it.qty!=null && (it.qty<=0 || (it.min!=null && it.qty<=it.min));
+function findByBarcode(code){
+  for(const it of S.items){ const b=(it.barcodes||[]).find(x=>x.code===code); if(b) return {it,b}; }
+  return null;
+}
+function toast(msg){const r=$("#toastRoot");r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`;clearTimeout(toast.t);toast.t=setTimeout(()=>r.innerHTML="",2600)}
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();o.frequency.value=1200;o.connect(a.destination);o.start();o.stop(a.currentTime+.08)}catch(_){}}
+
+/* ---------- render ---------- */
+function render(){
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab));
+  const n=S.items.filter(needsOrder).length; const bd=$("#ordBadge"); bd.hidden=!n; bd.textContent=n;
+  $("#fab").hidden=!(S.loaded && S.canWrite && S.tab==="stok");
+  $("#saveRoot").innerHTML="";
+  const m=$("#main");
+  if(!db){ if(S.dbMissing) m.innerHTML=`<div class="note">Stok verisine ulaşılamıyor. Sayfayı claude.ai'ye giriş yapmış olarak açın.</div>`; return; }
+  if(!S.loaded){ m.innerHTML=`<div class="note">${S.slow?"Veriye henüz ulaşılamadı. İnternet bağlantısını kontrol edin; bağlanınca liste kendiliğinden gelir.":"Stok listesi yükleniyor…"}</div>`; return; }
+  const ro=S.canWrite?"":`<div class="ro">Bu sayfayı sadece görüntüleyebiliyorsunuz. Stok değiştirmek için sahibinden düzenleme izni isteyin.</div>`;
+  if(S.tab==="stok") m.innerHTML=ro+renderStock();
+  else if(S.tab==="cikis") m.innerHTML=ro+renderOut();
+  else if(S.tab==="sayim") m.innerHTML=ro+renderCount();
+  else if(S.tab==="siparis") m.innerHTML=ro+renderOrders();
+  else m.innerHTML=renderLog();
+}
+
+function renderStock(){
+  const all=S.items;
+  const c={bad:0,warn:0,none:0,ok:0}; all.forEach(i=>c[status(i).k]++);
+  const sums=[["all","Tümü",all.length],["bad","Bitti",c.bad],["warn","Az kaldı",c.warn],["none","Sayılmadı",c.none]];
+  let h=`<div class="summary">${sums.map(([k,l,v])=>`<button class="sum" data-status="${k}" aria-pressed="${S.status===k}"><b>${v}</b><span>${l}</span></button>`).join("")}</div>`;
+  const chipList=S.groupBy==="loc"?["Tümü",...LOCS]:["Tümü",...CATS];
+  h+=`<div class="tools"><input id="q" type="search" placeholder="Ürün ara (Türkçe, Korece veya barkod)" value="${esc(S.q)}" autocomplete="off">
+  <div class="bar"><div class="seg2" role="group" aria-label="Gruplama"><button data-group="cat" aria-pressed="${S.groupBy==="cat"}">Kategoriye göre</button><button data-group="loc" aria-pressed="${S.groupBy==="loc"}">Yere göre</button></div>${S.canWrite?`<button class="btn ghost sm" data-act="lists">Tedarikçi & birim listesi</button>`:""}</div>
+  <div class="chips">${chipList.map(x=>`<button class="chip" data-cat="${esc(x)}" aria-pressed="${S.cat===x}">${esc(x)}</button>`).join("")}</div></div>`;
+  const q=S.q.trim().toLocaleLowerCase("tr");
+  const key=i=>S.groupBy==="loc"?(i.location||"Yeri belirtilmemiş"):(i.category||"Diğer");
+  const rows=all.filter(i=>(S.cat==="Tümü"||key(i)===S.cat)&&(S.status==="all"||status(i).k===S.status)&&(!q||[i.name,i.ko,i.supplier,i.size,...(i.barcodes||[]).map(b=>b.code)].join(" ").toLocaleLowerCase("tr").includes(q)));
+  if(!all.length) return h+`<div class="note">Henüz ürün yok. Sağ alttaki <b>+ Ürün ekle</b> ile ilk ürünü ekleyin.</div>`;
+  if(!rows.length) return h+`<div class="note">Bu filtreye uyan ürün yok.</div>`;
+  const groups={}; rows.forEach(i=>(groups[key(i)]??=[]).push(i));
+  const order=S.groupBy==="loc"?[...LOCS,"Yeri belirtilmemiş"]:[...CATS,"Diğer"];
+  Object.keys(groups).sort((a,b)=>order.indexOf(a)-order.indexOf(b)).forEach(g=>{
+    groups[g].sort((a,b)=>a.name.localeCompare(b.name,"tr"));
+    h+=`<section class="group"><h2>${esc(g)} · ${groups[g].length}</h2><div class="list">${groups[g].map(rowHTML).join("")}</div></section>`;
+  });
+  return h;
+}
+function rowHTML(i){
+  const st=status(i);
+  const sub=[i.size,i.supplier].filter(Boolean).join(" · ");
+  return `<button class="row" data-item="${esc(i.id)}"><div class="rmain"><div class="rname">${esc(i.name)}${(i.barcodes||[]).length?`<span class="bc" title="Barkodu tanımlı"></span>`:""}</div><div class="rsub">${esc(sub)}${i.min!=null?` · min ${fmt(i.min)}`:""}</div></div>
+  <div class="rqty"><b>${fmt(i.qty)}</b><small>${esc(i.unit||"")}</small><br><span class="pill p-${st.k}">${st.t}</span></div></button>`;
+}
+
+/* out tab: kitchen's quick "I opened a pack" screen */
+S.outMode="out"; S.outQ=""; S.outReason=WASTE_REASONS[0];
+function renderOut(){
+  const cnt={}; S.moves.forEach(m=>{if(m.kind==="out"||m.kind==="waste")cnt[m.itemId]=(cnt[m.itemId]||0)+1});
+  const q=S.outQ.trim().toLocaleLowerCase("tr");
+  const items=S.items.filter(i=>!q||[i.name,i.ko,...(i.barcodes||[]).map(b=>b.code)].join(" ").toLocaleLowerCase("tr").includes(q));
+  const w=S.outMode==="waste";
+  let h=`<div class="tools">
+    <div class="bar"><div class="seg2" role="group" aria-label="Çıkış türü"><button data-outmode="out" aria-pressed="${!w}">Kullanıldı</button><button data-outmode="waste" aria-pressed="${w}">Zayi (çöpe)</button></div>
+    ${S.canWrite?`<button class="btn ghost sm" data-act="outscan">Barkodla düş</button>`:""}</div>
+    ${w?`<select id="outReason" aria-label="Zayi sebebi">${WASTE_REASONS.map(x=>`<option${x===S.outReason?" selected":""}>${x}</option>`).join("")}</select>`:""}
+    <input id="outq" type="search" placeholder="Ürün ara" value="${esc(S.outQ)}" autocomplete="off"></div>
+  <p class="hint">${w?"<b>Zayi modu:</b> sağdaki düğme 1 birimi çöpe gitmiş olarak düşer.":"Paketi açınca sağdaki <b>−1</b>'e dokunun."} Farklı miktar için ürün adına dokunun. Yanlış dokunursanız alttaki <b>Geri al</b>'a basın.</p>`;
+  const tile=i=>{const dis=!S.canWrite||i.qty==null||i.qty<=0;const st=status(i);
+    return `<div class="tile"><button class="tile-main" data-item-out="${esc(i.id)}"><span class="rname">${esc(i.name)}</span><span class="rsub">${i.qty==null?"Sayılmadı":"Mevcut: <b>"+fmt(i.qty)+"</b> "+esc(i.unit||"")} ${st.k==="warn"||st.k==="bad"?`<span class="pill p-${st.k}">${st.t}</span>`:""}</span></button>
+    <button class="tile-minus${w?" w":""}" data-out="${esc(i.id)}"${dis?" disabled":""} aria-label="1 ${esc(i.unit||"")} düş">−1</button></div>`};
+  if(!items.length) return h+`<div class="note">Eşleşen ürün yok.</div>`;
+  const fav=q?[]:items.filter(i=>cnt[i.id]).sort((a,b)=>cnt[b.id]-cnt[a.id]).slice(0,10);
+  if(fav.length) h+=`<section class="group"><h2>Sık kullanılanlar</h2><div class="tiles">${fav.map(tile).join("")}</div></section>`;
+  const g={}; items.forEach(i=>(g[i.location||"Yeri belirtilmemiş"]??=[]).push(i));
+  const order=[...LOCS,"Yeri belirtilmemiş"];
+  Object.keys(g).sort((a,b)=>order.indexOf(a)-order.indexOf(b)).forEach(k=>{
+    g[k].sort((a,b)=>a.name.localeCompare(b.name,"tr"));
+    h+=`<section class="group"><h2>${esc(k)} · ${g[k].length}</h2><div class="tiles">${g[k].map(tile).join("")}</div></section>`;
+  });
+  const today=new Date().toDateString(), td={};
+  S.moves.forEach(m=>{if((m.kind==="out"||m.kind==="waste")&&m.at&&new Date(m.at).toDateString()===today){const k=m.itemId+"|"+m.kind;(td[k]??={name:m.name,unit:m.unit,kind:m.kind,amt:0}).amt+=m.amount||0}});
+  const tl=Object.values(td).sort((a,b)=>a.name.localeCompare(b.name,"tr"));
+  h+=`<details class="today"${tl.length?"":""}><summary>Bugün çıkanlar (${tl.length} ürün)</summary>${tl.length?`<div style="margin-top:8px">${tl.map(x=>`<div class="ord-line"><span>${esc(x.name)}${x.kind==="waste"?' <span class="pill p-bad">zayi</span>':""}</span><b>−${fmt(x.amt)} ${esc(x.unit||"")}</b></div>`).join("")}</div>`:`<p class="hint" style="margin:8px 0 0">Bugün henüz çıkış yok.</p>`}</details>`;
+  return h;
+}
+const outBusy=new Set();
+async function quickOut(id){
+  const it=S.items.find(i=>i.id===id); if(!it||outBusy.has(id)||!S.canWrite) return;
+  outBusy.add(id);
+  try{
+    const k=S.outMode; const res=await applyMove(it,k,1,"",k==="waste"?{reason:S.outReason}:{},true);
+    beep();
+    toastUndo(`${it.name}: −1 → ${fmt(res.after)} ${it.unit||""}`,async()=>{
+      try{ await db.doc("items/"+id).update({qty:res.before,updatedAt:nowISO(),updatedBy:S.uid}); if(res.ref) await res.ref.delete(); toast("Geri alındı"); }catch(e){writeErr(e)}
+    });
+  }catch(e){writeErr(e)} finally{outBusy.delete(id)}
+}
+function toastUndo(msg,fn){
+  const r=$("#toastRoot"); r.innerHTML=`<div class="toast" role="status">${esc(msg)}<button id="undoBtn">Geri al</button></div>`;
+  $("#undoBtn").onclick=()=>{r.innerHTML="";fn()};
+  clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML="",6000);
+}
+
+/* count mode: shows the recorded stock; confirm it or correct it */
+const draftVal=id=>{const v=S.countDraft[id];return v==null||v===""?null:v};
+function renderCount(){
+  const inLoc=S.items.filter(i=>(i.location||"Yeri belirtilmemiş")===S.countLoc).sort((a,b)=>a.name.localeCompare(b.name,"tr"));
+  const locs=[...LOCS]; if(S.items.some(i=>!i.location)) locs.push("Yeri belirtilmemiş");
+  const filled=inLoc.filter(i=>draftVal(i.id)!=null).length;
+  const allFilled=Object.keys(S.countDraft).filter(k=>draftVal(k)!=null).length;
+  const left=inLoc.filter(i=>draftVal(i.id)==null&&i.qty!=null).length;
+  let h=`<p class="hint">Her üründe kayıtlı mevcut stok yazar. Dolaptakiyle aynıysa <b>✓ Doğru</b>'ya dokunun, farklıysa doğru miktarı yazın. Kaydedince stok güncellenir ve farklar raporlanır.</p>
+  <div class="chips" style="margin-bottom:10px">${locs.map(l=>{const n=S.items.filter(i=>(i.location||"Yeri belirtilmemiş")===l).length;return `<button class="chip" data-cloc="${esc(l)}" aria-pressed="${S.countLoc===l}">${esc(l)} · ${n}</button>`}).join("")}</div>
+  <div class="bar"><b>${esc(S.countLoc)}</b><span class="rsub" id="cntProg">${filled} / ${inLoc.length} kontrol edildi</span></div>
+  <div class="progress"><i id="cntBar" style="width:${inLoc.length?Math.round(filled/inLoc.length*100):0}%"></i></div>`;
+  if(!inLoc.length) return h+`<div class="note">Bu yerde ürün yok. Ürünün <b>Ayarlar</b> bölümünden yerini seçebilirsiniz.</div>`+histHTML();
+  if(S.canWrite&&left) h+=`<div style="margin:10px 0"><button class="btn ghost sm" data-act="allok">Kalan ${left} ürünün hepsi doğru</button></div>`;
+  h+=`<div class="list" style="margin-top:10px">${inLoc.map(cntRow).join("")}</div>`;
+  if(S.canWrite) setTimeout(()=>{$("#saveRoot").innerHTML=`<div class="savebar"><div class="wrap"><span class="rsub" id="cntAll">${allFilled} ürün kontrol edildi</span><div style="display:flex;gap:8px"><button class="btn ghost" data-act="clearcount"${allFilled?"":" disabled"}>Temizle</button><button class="btn" data-act="savecount"${allFilled?"":" disabled"}>Sayımı kaydet</button></div></div></div>`},0);
+  return h+histHTML();
+}
+function histHTML(){
+  if(!S.counts.length) return "";
+  return `<section class="group"><h2>Geçmiş sayımlar</h2><div class="list">${S.counts.slice(0,20).map(c=>{const s=countSummary(c);const locs=(c.locations||[]).filter(Boolean);
+    return `<button class="row" data-countid="${esc(c.id)}"><div class="rmain"><div class="rname">${dt(c.at)}</div><div class="rsub">Sayımı yapan: <b>${esc(nameOf(c.by))}</b> · ${(c.rows||[]).length} ürün${locs.length?" · "+esc(locs.join(", ")):""}</div></div>${s.items?`<span class="pill p-bad">${s.items} eksik</span>`:`<span class="pill p-ok">fark yok</span>`}</button>`}).join("")}</div></section>`;
+}
+function cntRow(i){
+  const v=draftVal(i.id); const ok=v!=null&&i.qty!=null&&num(v)===i.qty; const fixed=v!=null&&!ok;
+  return `<div class="cnt${v!=null?" done":""}" id="cr-${esc(i.id)}"><div class="rmain"><div class="rname">${esc(i.name)}</div>
+    <div class="rsub">Mevcut: <b>${i.qty==null?"sayılmadı":fmt(i.qty)+" "+esc(i.unit||"")}</b>${i.countedAt?`<br>Son sayım: ${dt(i.countedAt)} · ${esc(nameOf(i.countedBy))}`:""}${fixed&&i.qty!=null?` · <span style="color:var(--${num(v)<i.qty?"bad":"ok"})">fark ${num(v)-i.qty>0?"+":""}${fmt(num(v)-i.qty)}</span>`:""}</div></div>
+    <div style="display:flex;align-items:center;gap:6px">${i.qty!=null&&S.canWrite?`<button class="btn ${ok?"":"ghost"} sm" data-cok="${esc(i.id)}" aria-pressed="${ok}">✓ Doğru</button>`:""}
+    ${!i.unit&&S.canWrite?`<select data-cunit="${esc(i.id)}" id="cu-${esc(i.id)}" aria-label="Birim" style="width:auto;padding:7px 6px"><option value="">birim?</option>${units().map(u=>`<option${S.countUnit[i.id]===u?" selected":""}>${esc(u)}</option>`).join("")}</select>`:""}
+    <input inputmode="decimal" id="cnt-${esc(i.id)}" data-cnt="${esc(i.id)}" value="${esc(fixed?v:"")}" placeholder="${i.qty==null?"?":"düzelt"}" aria-label="${esc(i.name)} doğru miktar"${S.canWrite?"":" disabled"}></div></div>`;
+}
+
+function suggest(i){ if(i.target!=null) return Math.max(0,Math.ceil(i.target-(i.qty||0))); return null; }
+function renderOrders(){
+  const list=S.items.filter(needsOrder);
+  const noMin=S.items.filter(i=>i.min==null).length;
+  let h=`<p class="hint">Stoğu biten ya da minimumun altına düşen ürünler, tedarikçiye göre gruplanır. Miktarı düzeltip <b>Kopyala</b> ile WhatsApp mesajına yapıştırın.</p>`;
+  if(!list.length) h+=`<div class="note">Şu an sipariş gereken ürün yok.</div>`;
+  const g={}; list.forEach(i=>(g[i.supplier||"Tedarikçi belirtilmemiş"]??=[]).push(i));
+  Object.keys(g).sort().forEach(sup=>{
+    let total=0,priced=0;
+    g[sup].forEach(i=>{const v=num(S.orderEdits[i.id]??suggest(i));if(v&&i.price!=null){total+=v*i.price;priced++}});
+    h+=`<div class="ord-card"><div class="ord-head"><h3>${esc(sup)}</h3><button class="btn ghost sm" data-copy="${esc(sup)}">Kopyala</button></div>`;
+    g[sup].sort((a,b)=>a.name.localeCompare(b.name,"tr")).forEach(i=>{
+      const v=S.orderEdits[i.id]??suggest(i)??"";
+      h+=`<div class="ord-line"><div><div class="rname">${esc(i.name)}</div><div class="rsub">${i.ko?esc(i.ko)+" · ":""}stokta ${fmt(i.qty)} ${esc(i.unit||"")}${i.min!=null?` · min ${fmt(i.min)}`:""}</div></div>
+      <div style="display:flex;align-items:center;gap:6px"><input inputmode="decimal" id="ord-${esc(i.id)}" data-ord="${esc(i.id)}" value="${esc(v)}" placeholder="?" aria-label="Sipariş miktarı"><span class="rsub">${esc(i.unit||"")}</span></div></div>`;
+    });
+    if(priced) h+=`<p class="hint" style="margin:8px 0 0">Tahmini tutar: <b>${won(total)}</b> (son fiyatlarla, ${priced} ürün)</p>`;
+    h+=`<div id="copyfb-${slug(sup)}"></div></div>`;
+  });
+  if(noMin) h+=`<p class="hint">${noMin} üründe minimum stok girilmemiş; bu ürünler sadece tamamen bitince listeye düşer. Ürüne dokunup <b>Ayarlar</b>'dan minimum girebilirsiniz.</p>`;
+  return h;
+}
+
+function renderLog(){
+  if(!S.moves.length) return `<div class="note">Henüz hareket yok. Mal girişi, kullanım, zayi ve sayımlar burada kimin yaptığıyla birlikte görünür.</div>`;
+  const icon={in:"+",out:"−",waste:"✕",count:"=",edit:"✎",add:"+"}, cls={in:"k-in",out:"k-out",waste:"k-waste",count:"k-count",edit:"k-edit",add:"k-edit"};
+  const verb={in:"Mal girişi",out:"Kullanıldı",waste:"Zayi",count:"Sayım",edit:"Bilgiler düzenlendi",add:"Ürün eklendi"};
+  const since=Date.now()-7*864e5; const wk=S.moves.filter(m=>m.at&&new Date(m.at).getTime()>=since);
+  const priceOf=id=>S.items.find(i=>i.id===id)?.price;
+  const wasteVal=wk.filter(m=>m.kind==="waste").reduce((s,m)=>s+(m.amount||0)*(priceOf(m.itemId)||0),0);
+  const stats=`<div class="stats"><div class="stat"><b>${wk.filter(m=>m.kind==="in").length}</b><span>Mal girişi (7 gün)</span></div><div class="stat"><b>${wk.filter(m=>m.kind==="waste").length}</b><span>Zayi (7 gün)</span></div><div class="stat"><b>${won(wasteVal)}</b><span>Zayi değeri (yaklaşık)</span></div></div>`;
+  return stats+`<p class="hint">Son ${S.moves.length} hareket.</p><div class="log">${S.moves.map(m=>{
+    const who=m.by?(S.names[m.by]||"Biri"):"—";
+    const d=m.at?new Date(m.at):null;
+    const when=d?d.toLocaleDateString("tr-TR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"}):"";
+    const amt=m.kind==="count"?`${fmt(m.before)} → ${fmt(m.after)} ${esc(m.unit||"")}${m.diff<0?` · <b style="color:var(--bad)">kayıt dışı ${fmt(m.diff)}</b>`:""}`:(["in","out","waste"].includes(m.kind))?`${m.kind==="in"?"+":"−"}${fmt(m.amount)} ${esc(m.unit||"")} → ${fmt(m.after)}`:"";
+    return `<div class="log-item"><div class="kind ${cls[m.kind]||"k-edit"}">${icon[m.kind]||"•"}</div>
+    <div style="min-width:0"><div class="rname">${esc(m.name)}</div><div class="rsub">${verb[m.kind]||""}${amt?" · "+amt:""}${m.reason?" · "+esc(m.reason):""}${m.barcode?" · barkodla":""}${m.note?" · "+esc(m.note):""}</div></div>
+    <div class="log-when">${esc(who)}<br>${when}</div></div>`}).join("")}</div>`;
+}
+
+/* ---------- sheet ---------- */
+let sheet=null;
+function openItem(id,preset){ const it=S.items.find(x=>x.id===id); if(!it) return; sheet={mode:"move",id,kind:"in",amount:1,confirmDel:false,...(preset||{})}; drawSheet(); }
+function openNew(prefill){ sheet={mode:"new",prefill:prefill||{}}; drawSheet(); }
+function openScan(){ sheet={mode:"scan",state:"idle"}; drawSheet(); }
+function closeSheet(){ sheet=null; $("#sheetRoot").innerHTML=""; }
+function itemForm(it){
+  it=it||{};
+  const opt=(arr,v)=>arr.map(x=>`<option${x===v?" selected":""}>${esc(x)}</option>`).join("");
+  return `<div class="form">
+  <label class="full">Ürün adı<input id="f-name" value="${esc(it.name)}" required></label>
+  <label class="full">Fişteki adı (Korece)<input id="f-ko" value="${esc(it.ko)}"></label>
+  <label>Kategori<select id="f-cat">${opt(CATS,it.category||CATS[0])}</select></label>
+  <label>Durduğu yer<select id="f-loc"><option value="">—</option>${opt(LOCS,it.location)}</select></label>
+  <label>Tedarikçi<select id="f-sup"><option value="">—</option>${opt(withCur(sups(),it.supplier),it.supplier)}</select></label>
+  <label>Birim<select id="f-unit"><option value="">— seçilmedi —</option>${opt(withCur(units(),it.unit),it.unit)}</select></label>
+  <label>Ambalaj / boyut<input id="f-size" value="${esc(it.size)}" placeholder="ör. 2 kg"></label>
+  <label>Minimum stok<input id="f-min" inputmode="decimal" value="${esc(it.min??"")}" placeholder="Altına düşünce uyar"></label>
+  <label>Hedef stok<input id="f-target" inputmode="decimal" value="${esc(it.target??"")}" placeholder="Siparişte buna tamamla"></label>
+  <label>Son fiyat (₩)<input id="f-price" inputmode="decimal" value="${esc(it.price??"")}"></label>
+  <label>Fiyat neyin fiyatı<input id="f-pricefor" value="${esc(it.priceFor)}" placeholder="ör. 1 paket, KDV dahil"></label>
+  <label class="full">Not<input id="f-note" value="${esc(it.note)}"></label>
+  ${it.id?"":`<label class="full">Şu an stokta kaç tane?<input id="f-qty" inputmode="decimal" placeholder="Bilmiyorsanız boş bırakın"></label>`}
+  </div>`;
+}
+const camIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
+const opt2=(arr,v)=>arr.map(x=>`<option${x===v?" selected":""}>${esc(x)}</option>`).join("");
+function drawSheet(){
+  const r=$("#sheetRoot"); if(!sheet){r.innerHTML="";return;}
+  let h="";
+  if(sheet.mode==="scan") h=scanHTML();
+  else if(sheet.mode==="receipt") h=receiptHTML();
+  else if(sheet.mode==="countdone") h=countReportHTML(sheet.rows,sheet.at,sheet.by);
+  else if(sheet.mode==="lists") h=listsHTML();
+  else if(sheet.mode==="new"){
+    const p=sheet.prefill||{};
+    h=`<h2>Yeni ürün</h2><p class="hint">${p.barcode?`Barkod <b>${esc(p.barcode)}</b> bu ürüne bağlanacak.`:"Fişte gördüğünüz adla girin; Korece adı aramada da işe yarar."}</p>${itemForm()}
+    <div class="actions"><button class="btn ghost" data-act="close">Vazgeç</button><button class="btn" data-act="create">Ürünü ekle</button></div>`;
+  } else {
+    const it=S.items.find(x=>x.id===sheet.id); if(!it){closeSheet();return;}
+    const st=status(it); const k=sheet.kind;
+    const label={in:`Kaç ${it.unit||""} geldi?`,out:`Kaç ${it.unit||""} kullanıldı?`,waste:`Kaç ${it.unit||""} çöpe gitti?`,count:`Sayımda kaç ${it.unit||""} var?`}[k];
+    const amount=k==="count"&&!sheet.touched&&it.qty!=null?it.qty:sheet.amount;
+    h=`<h2>${esc(it.name)}</h2><div class="ko">${esc([it.ko,it.size,it.supplier,it.location].filter(Boolean).join(" · "))}</div>
+    ${sheet.scanned?`<p class="hint">Barkodla bulundu: <code>${esc(sheet.scanned.code)}</code>${sheet.scanned.mult>1?` (1 okutma = ${fmt(sheet.scanned.mult)} ${esc(it.unit||"")})`:""}</p>`:""}
+    <div class="big"><b>${fmt(it.qty)}</b><span>${esc(it.unit||"")}</span><span class="pill p-${st.k}">${st.t}</span></div>
+    ${it.price!=null?`<p class="hint">Son fiyat: ${won(it.price)}${it.priceFor?" / "+esc(it.priceFor):""}</p>`:""}
+    ${it.note?`<p class="hint">Not: ${esc(it.note)}</p>`:""}
+    ${S.canWrite?`<div class="seg" role="group" aria-label="İşlem">${Object.entries(KIND_LABEL).map(([kk,l])=>`<button data-kind="${kk}" aria-pressed="${k===kk}">${l}</button>`).join("")}</div>
+    <p class="hint">${label}</p>
+    <div class="stepper"><button data-step="-1" aria-label="Azalt">−</button><input id="amt" inputmode="decimal" value="${esc(amount)}" aria-label="Miktar"><button data-step="1" aria-label="Artır">+</button></div>
+    <div class="note" id="preview" style="margin-bottom:10px;color:var(--fg)"></div>
+    ${k==="waste"?`<select id="reason" aria-label="Zayi sebebi" style="margin-bottom:10px">${WASTE_REASONS.map(x=>`<option>${x}</option>`).join("")}</select>`:""}
+    ${k==="in"?`<label class="full rsub" style="display:grid;gap:4px;margin-bottom:10px">Birim fiyat (₩, fiş fiyatı değiştiyse yazın)<input id="newprice" inputmode="decimal" value="${esc(it.price??"")}"></label>
+    <label class="full rsub" style="display:grid;gap:4px;margin-bottom:10px">Tedarikçi (bu teslimat)<select id="insup"><option value="">—</option>${opt2(withCur(sups(),it.supplier),it.supplier)}</select></label>`:""}
+    ${!it.unit?`<label class="full rsub" style="display:grid;gap:4px;margin-bottom:10px">Bu ürünün birimi henüz seçilmedi. Miktarı hangi birimle yazıyorsunuz?<select id="inunit"><option value="">— seçin —</option>${opt2(units(),"")}</select></label>`:""}
+    <input id="mnote" placeholder="Not (isteğe bağlı, ör. Asel 11.11 fişi)">
+    <div class="actions"><button class="btn ghost" data-act="close">Kapat</button><button class="btn" data-act="move">Kaydet</button></div>
+    <details><summary>Ayarlar: barkod, yer, minimum, fiyat</summary>
+      <p class="hint" style="margin-top:10px"><b>Barkodlar</b></p>
+      <div class="bclist">${(it.barcodes||[]).map(b=>`<div class="bcrow"><span><code>${esc(b.code)}</code> · 1 okutma = ${fmt(b.mult)} ${esc(it.unit||"")}</span><button class="btn ghost sm" data-unbc="${esc(b.code)}">Kaldır</button></div>`).join("")||`<span class="rsub">Henüz barkod yok. Üstteki <b>Okut</b> düğmesiyle bu ürünü okutup bağlayabilirsiniz.</span>`}</div>
+      ${itemForm(it)}
+      <div class="actions"><button class="btn ${sheet.confirmDel?"danger":"ghost"}" data-act="del">${sheet.confirmDel?"Evet, ürünü sil":"Ürünü sil"}</button><button class="btn" data-act="saveinfo">Bilgileri kaydet</button></div>
+    </details>`:`<div class="actions"><button class="btn ghost" data-act="close">Kapat</button></div>`}`;
+  }
+  const keepOpen=r.querySelector("details")?.open;
+  r.innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true">${h}</div></div>`;
+  if(keepOpen&&r.querySelector("details")) r.querySelector("details").open=true;
+  updatePreview();
+}
+function updatePreview(){
+  const p=$("#preview"); if(!p||!sheet||sheet.mode!=="move") return;
+  const it=S.items.find(x=>x.id===sheet.id); if(!it) return;
+  const a=num($("#amt").value)||0, cur=it.qty, u=esc(it.unit||""), k=sheet.kind;
+  if(k==="count"){p.innerHTML=`Mevcut <b>${fmt(cur)}</b> → yeni <b>${fmt(a)}</b> ${u}${cur!=null&&a!==cur?` (fark ${a-cur>0?"+":""}${fmt(a-cur)})`:""}`;return}
+  const base=cur||0, after=Math.max(0,Math.round((k==="in"?base+a:base-a)*100)/100);
+  p.innerHTML=`Mevcut <b>${cur==null?"sayılmadı (0)":fmt(cur)}</b> ${k==="in"?"+":"−"} ${fmt(a)} = <b>${k==="in"?"yeni stok":"kalan"} ${fmt(after)} ${u}</b>${k!=="in"&&base-a<0?`<br><span style="color:var(--bad)">Mevcut stoktan fazla düşülüyor; kayıtlı stok yanlış olabilir, sonra sayımda düzeltin.</span>`:""}`;
+}
+function scanHTML(){
+  const s=sheet;
+  let body="";
+  if(s.state==="busy") body=`<div class="note">Barkod okunuyor…</div>`;
+  else if(s.state==="fail") body=`<div class="note">Fotoğrafta barkod okunamadı. Barkodu yakından, düz ve ışıklı çekip tekrar deneyin, ya da altındaki numarayı elle yazın.</div>`;
+  else if(s.state==="unknown"){
+    const q=(s.pickQ||"").toLocaleLowerCase("tr");
+    const opts=S.items.filter(i=>!q||[i.name,i.ko].join(" ").toLocaleLowerCase("tr").includes(q)).sort((a,b)=>a.name.localeCompare(b.name,"tr")).slice(0,60);
+    body=`<div class="found"><b>Bu barkod henüz tanımlı değil</b><div class="rsub"><code>${esc(s.code)}</code></div>
+    ${S.canWrite?`<p class="hint" style="margin-top:8px">Hangi ürün? Bir kez seçin, sonraki okutmalarda direkt açılır.</p>
+    <div class="form"><label class="full">Ürün ara<input id="pickq" value="${esc(s.pickQ||"")}" placeholder="ör. tender, tortilla" autocomplete="off"></label>
+    <label class="full">1 okutma kaç birim sayılsın?<input id="pickmult" inputmode="decimal" value="${esc(s.mult??1)}"></label></div>
+    <p class="hint" style="margin:6px 0 0">Tek paket barkodu ise 1, koli barkodu ise kolideki paket sayısını yazın (ör. 10).</p>
+    <div class="pick">${opts.map(i=>`<button class="row" data-link="${esc(i.id)}"><div class="rmain"><div class="rname">${esc(i.name)}</div><div class="rsub">${esc([i.size,i.supplier].filter(Boolean).join(" · "))}</div></div><span class="rsub">${esc(i.unit||"")}</span></button>`).join("")||`<div class="note">Eşleşen ürün yok.</div>`}</div>
+    <div class="actions"><button class="btn ghost" data-act="newfrombc">Listede yok, yeni ürün ekle</button></div>`:`<p class="hint">Barkod bağlamak için düzenleme izni gerekiyor.</p>`}</div>`;
+  }
+  return `<h2>Barkod okut</h2>
+  <div class="scanbox">
+    <label class="btn camera" for="camIn">${camIcon}Kamerayla barkodu çek</label>
+    <div class="form"><label class="full">Ya da barkod numarasını yazın / okuyucuyla okutun<input id="bcman" inputmode="numeric" autocomplete="off" placeholder="ör. 8801234567890" value="${esc(s.state==="unknown"?"":"")}"></label></div>
+    <button class="btn ghost" data-act="bcsearch">Bu numarayı ara</button>
+    ${S.canWrite?`<label class="toggle"><input type="checkbox" id="serialOn"${S.serial?" checked":""}><span><b>Seri mod</b>: her okutma direkt <select id="serialKind" style="width:auto;padding:4px 6px;display:inline-block">${["in","out"].map(k=>`<option value="${k}"${(S.serial||"in")===k?" selected":""}>${k==="in"?"mal girişi":"kullanım"}</option>`).join("")}</select> olarak kaydedilsin</span></label>`:""}
+  </div>
+  ${body}
+  <p class="hint" style="margin-top:12px">Bluetooth/USB barkod okuyucu bağlıysa bu pencere açık olmasa da okutabilirsiniz; ürün kendiliğinden açılır.</p>
+  <div class="actions"><button class="btn ghost" data-act="close">Kapat</button></div>`;
+}
+function readForm(){
+  const g=id=>document.getElementById(id);
+  return {name:g("f-name").value.trim(),ko:g("f-ko").value.trim(),category:g("f-cat").value,location:g("f-loc").value,supplier:g("f-sup").value,unit:g("f-unit").value,
+    size:g("f-size").value.trim(),min:num(g("f-min").value),target:num(g("f-target").value),price:num(g("f-price").value),priceFor:g("f-pricefor").value.trim(),note:g("f-note").value.trim()};
+}
+
+/* ---------- receipt photo -> stock-in ---------- */
+let rctl=null;
+function receiptPrompt(){
+  const cat=S.items.map(i=>[i.id,i.name,i.ko||"",i.size||"",i.unit||"",i.supplier||""].join(" | ")).join("\n");
+  return `Bu fotoğraf(lar) Kore'deki "Last Stop" restoranının bir tedarikçi fişi (거래명세서 / fatura / market fişi). Fişi oku ve kalemleri aşağıdaki stok listesiyle eşleştir. Birden fazla fotoğraf varsa aynı fişin sayfalarıdır.
+
+STOK LİSTESİ (id | ad | fişteki Korece ad | boyut | stok birimi | tedarikçi):
+${cat}
+
+KURALLAR:
+- Fişteki her ürün satırı için bir kalem yaz. Ara toplam, KDV, önceki bakiye, ödeme satırlarını kalem yapma. Fişte el yazısı notlar varsa yok say.
+- qty: fişteki toplam miktar (총수량, yoksa 수량). unitPrice: fişteki birim fiyat (단가). amount: satır tutarı (금액 / 공급가액).
+- itemId: listedeki en uygun ürünün id'si. Emin değilsen null. Farklı marka ama aynı ürün ise yine eşleştir ve why alanına yaz.
+- stockQty: bu satırın, eşleşen ürünün STOK BİRİMİNE çevrilmiş miktarı. Örnek: stok birimi "paket", fişte "1kg*10pk" ve 총수량 10 ise stockQty=10. BOX/koli sayısı ile paket sayısını karıştırma; 총수량 genelde en küçük birimdir. Çeviri belirsizse makul tahmin yap ve confidence "low" ver.
+- stockUnit: eşleşen ürünün stok birimi boşsa, bu satır için en uygun birimi yaz (şunlardan biri: ${units().join(", ")}); doluysa o birimi tekrar yaz.
+- stockPrice: bir stok biriminin fiyatı (₩). KDV fişte ayrıca ekleniyorsa KDV hariç fiyatı yaz.
+- supplier: "Asel Food" (아셀푸드), "Green Mart" (그린마트), "Wonplus Mart" (원플러스 / 식자재왕), "Coupang", "Costco" ya da fişte yazan ad.
+- date: fiş tarihi YYYY-MM-DD, yoksa null. total: fişin bu alışverişe ait toplamı (금일매출액 / 합계 / 총금액), önceki bakiyeyi katma.
+- vatSeparate: KDV (세액) toplamın üstüne ayrıca ekleniyorsa true.
+- Okunamayan rakamı uydurma: null yaz ve confidence "low" ver. why: kısa Türkçe açıklama, gerek yoksa boş.
+
+SADECE şu biçimde JSON döndür:
+{"supplier":"Asel Food","date":"2026-11-02","total":826640,"vatSeparate":false,"lines":[{"text":"세이)5\\"밀또띠아 12ea*40pk","qty":40,"unitPrice":2000,"amount":80000,"itemId":"tortilla-5-taco","stockQty":40,"stockUnit":"paket","stockPrice":2000,"confidence":"high","why":""}]}`;
+}
+async function readReceipt(files){
+  if(!sampleCap) return;
+  const max=imgLimits?.maxCount||1;
+  files=[...files].slice(0,max);
+  sheet={mode:"receipt",state:"busy",progress:"Claude fişi okuyor. Bu genelde 30–90 saniye sürer…"}; drawSheet();
+  rctl=new AbortController();
+  try{
+    const res=await sampleCap.json(receiptPrompt(),{images:files,signal:rctl.signal,onText:()=>{if(sheet&&sheet.mode==="receipt"&&sheet.state==="busy"&&!sheet.writing){sheet.writing=true;sheet.progress="Kalemler yazılıyor…";drawSheet()}}});
+    if(!sheet||sheet.mode!=="receipt") return;
+    const lines=Array.isArray(res&&res.lines)?res.lines:[];
+    if(!lines.length) throw {code:"empty"};
+    const ids=new Set(S.items.map(i=>i.id));
+    sheet={mode:"receipt",state:"review",r:{
+      supplier:String(res.supplier||""),date:res.date?String(res.date):"",total:num(res.total),vatSeparate:!!res.vatSeparate,
+      lines:lines.map(l=>{const itemId=ids.has(l.itemId)?l.itemId:"";return {text:String(l.text||"?"),qty:num(l.qty),unitPrice:num(l.unitPrice),amount:num(l.amount),itemId,
+        stockQty:num(l.stockQty)??num(l.qty),stockUnit:String(l.stockUnit||""),stockPrice:num(l.stockPrice)??num(l.unitPrice),low:l.confidence==="low"||!itemId,why:String(l.why||""),include:!!itemId}})
+    }};
+    if(S.rcptDirect&&S.canWrite&&!findDup(sheet.r)&&sheet.r.lines.some(l=>l.include)){ await saveReceipt(); return; }
+    drawSheet();
+  }catch(e){
+    if(e&&e.code==="cancelled"){closeSheet();return}
+    const msg={not_granted:"Claude kullanımına izin verilmedi. Fiş okuma bu oturumda kapalı.",sampling_disabled:"Bu hesapta Claude kullanılamıyor.",rate_limited:"Çok sık deneme yapıldı ya da kullanım sınırına gelindi. Biraz sonra tekrar deneyin.",
+      image_rejected:"Fotoğraf kabul edilmedi. JPG/PNG bir fotoğraf seçin.",images_unavailable:"Bu cihazda fotoğraf gönderilemiyor.",invalid_json:"Fiş okunamadı. Fişi düz, yakından ve tamamı görünecek şekilde çekip tekrar deneyin.",
+      empty:"Fişte ürün satırı bulunamadı. Fotoğrafta fişin tamamı ve yazılar net görünmeli.",refused:"Bu fotoğraf işlenemedi. Başka bir fotoğraf deneyin.",session_expired:"Oturum kapanmış, claude.ai'ye tekrar giriş yapın."}[e&&e.code]||"Bağlantı sorunu oldu. Tekrar deneyin.";
+    sheet={mode:"receipt",state:"error",err:msg}; drawSheet();
+    if(e&&["not_granted","sampling_disabled","images_unavailable"].includes(e.code)){sampleCap=null;$("#rcptBtn").hidden=true}
+  }
+}
+function receiptHTML(){
+  const s=sheet;
+  if(s.state==="busy") return `<h2>Fiş okunuyor</h2><div class="note"><span class="spin"></span>${esc(s.progress)}</div><p class="hint" style="margin-top:10px">İlk kullanımda Claude'a fotoğraf göndermek için izin sorulur.</p><div class="actions"><button class="btn ghost" data-act="rstop">Durdur</button></div>`;
+  if(s.state==="error") return `<h2>Fiş okunamadı</h2><div class="note">${esc(s.err)}</div><div class="actions"><button class="btn ghost" data-act="close">Kapat</button>${sampleCap?`<label class="btn" for="rcptIn">Başka fotoğraf seç</label>`:""}</div>`;
+  if(s.state==="saving") return `<h2>Kaydediliyor</h2><div class="note"><span class="spin"></span>${esc(s.progress||"")}</div>`;
+  const r=s.r;
+  const directToggle=`<label class="toggle" style="margin-top:12px"><input type="checkbox" id="rDirect"${S.rcptDirect?" checked":""}><span><b>Fişten direkt ekle</b>: sonraki fişlerde kontrol ekranı olmadan eşleşen kalemler hemen stoğa girsin</span></label>`;
+  if(s.state==="done"){
+    const added=r.lines.filter(l=>l.added), rest=r.lines.filter(l=>!l.added), low=added.filter(l=>l.low);
+    const nameOf=l=>l.itemId==="__new"?l.text:(S.items.find(i=>i.id===l.itemId)?.name||l.text);
+    const unitOf=l=>S.items.find(i=>i.id===l.itemId)?.unit||l.stockUnit||"";
+    return `<h2>Fiş stoğa eklendi</h2>
+    <div class="rhead"><div><span>Tedarikçi</span><b>${esc(r.supplier||"?")}</b></div><div><span>Tarih</span><b>${esc(r.date||"?")}</b></div><div><span>Fiş toplamı</span><b>${won(r.total)}</b></div></div>
+    <div class="list">${added.map(l=>`<div class="cnt done"><div class="rmain"><div class="rname">${esc(nameOf(l))}</div><div class="rsub">${esc(l.text)}${l.low?" · <b>miktarı kontrol edin</b>":""}</div></div><b>+${fmt(num(l.stockQty))} ${esc(unitOf(l))}</b></div>`).join("")}</div>
+    ${low.length?`<p class="hint" style="margin-top:8px">${low.length} kalemde birim çevirisi tahmini yapıldı. Yanlışsa ürüne dokunup <b>= Sayım</b> ile düzeltin.</p>`:""}
+    ${rest.length?`<div class="ro" style="margin-top:12px">${rest.length} satır stoktaki bir ürünle eşleşmedi ve eklenmedi: ${rest.map(l=>esc(l.text)).join(", ")}</div>`:""}
+    ${directToggle}
+    <div class="actions">${rest.length&&S.canWrite?`<button class="btn ghost" data-act="rfix">Eşleşmeyenleri ekle</button>`:""}<button class="btn" data-act="close">Tamam</button></div>`;
+  }
+  const opts=it=>`<option value="">— Eşleşme yok —</option><option value="__new"${it==="__new"?" selected":""}>+ Yeni ürün olarak ekle</option>`+[...S.items].sort((a,b)=>a.name.localeCompare(b.name,"tr")).map(i=>`<option value="${esc(i.id)}"${i.id===it?" selected":""}>${esc(i.name)}${i.size?" · "+esc(i.size):""}</option>`).join("");
+  const sum=r.lines.reduce((a,l)=>a+(l.amount||0),0);
+  const expect=r.total==null?null:(r.vatSeparate?Math.round(r.total/1.1):r.total);
+  const match=expect!=null&&Math.abs(sum-expect)<=Math.max(10,expect*0.01);
+  const dup=!r.saved&&findDup(r);
+  const inc=r.lines.filter(l=>!l.added&&l.include&&l.itemId).length;
+  return `<h2>Fişi kontrol edin</h2>
+  <div class="rhead"><div><span>Tedarikçi</span><b>${esc(r.supplier||"?")}</b></div><div><span>Tarih</span><b>${esc(r.date||"?")}</b></div><div><span>Fiş toplamı</span><b>${won(r.total)}</b></div></div>
+  ${dup?`<div class="ro">Bu fiş ${esc(new Date(dup.at).toLocaleDateString("tr-TR"))} tarihinde zaten girilmiş görünüyor. Tekrar kaydederseniz stok iki kez artar.</div>`:""}
+  <p class="hint">Satırların toplamı ${won(sum)}${expect!=null?(match?" · fiş toplamıyla tutuyor ✓":` · fişte ${won(expect)}${r.vatSeparate?" (KDV hariç)":""}, fark ${won(Math.abs(sum-expect))}. Satırları kontrol edin.`):""}. Turuncu çerçeveli satırlara özellikle bakın.</p>
+  <div class="rlines">${r.lines.map((l,ix)=>{if(l.added)return "";const it=S.items.find(i=>i.id===l.itemId);const unit=it?it.unit:(l.itemId==="__new"?"adet":"");
+    return `<div class="rline${l.include?"":" off"}${l.low?" low":""}">
+      <div class="top"><input type="checkbox" id="rinc-${ix}" data-rl="${ix}" data-f="include"${l.include?" checked":""} aria-label="Stoğa ekle"><div class="rmain"><div class="rname">${esc(l.text)}</div><div class="rsub">Fişte: ${fmt(l.qty)} × ${won(l.unitPrice)} = ${won(l.amount)}${l.why?" · "+esc(l.why):""}</div></div></div>
+      <select id="ritem-${ix}" data-rl="${ix}" data-f="itemId" aria-label="Stoktaki ürün">${opts(l.itemId)}</select>
+      <div class="nums"><label>Stoğa eklenecek${unit?" ("+esc(unit)+")":""}<input id="rq-${ix}" inputmode="decimal" data-rl="${ix}" data-f="stockQty" value="${esc(l.stockQty??"")}"></label>
+      <label>Birim fiyat (₩)<input id="rp-${ix}" inputmode="decimal" data-rl="${ix}" data-f="stockPrice" value="${esc(l.stockPrice??"")}"></label></div>
+    </div>`}).join("")}</div>
+  ${r.saved?"":directToggle}
+  <div class="actions"><button class="btn ghost" data-act="close">Vazgeç</button><button class="btn" data-act="rsave"${inc&&S.canWrite?"":" disabled"}>${inc} kalemi stoğa ekle</button></div>`;
+}
+async function saveReceipt(){
+  const r=sheet.r; if(busy) return; busy=true;
+  const label=[r.supplier,r.date].filter(Boolean).join(" ")||"Fiş";
+  const chosen=r.lines.filter(l=>!l.added&&l.include&&l.itemId&&num(l.stockQty)>0);
+  sheet.state="saving"; sheet.progress=`${chosen.length} kalem kaydediliyor…`; drawSheet();
+  let ok=0;
+  try{
+    const agg={};
+    for(const l of chosen){
+      if(l.itemId==="__new"){
+        const id=slug(l.text)+"-"+Date.now().toString(36).slice(-4)+ok;
+        await db.doc("items/"+id).set({name:l.text,ko:l.text,category:"",location:"",supplier:sups().includes(r.supplier)?r.supplier:"",unit:l.stockUnit||"",size:"",qty:num(l.stockQty),min:null,target:null,price:num(l.stockPrice),priceFor:"1 adet"+(r.vatSeparate?", +%10 KDV":""),note:"Fişten eklendi, adını ve birimini düzeltin",barcodes:[],createdAt:nowISO(),updatedAt:nowISO(),updatedBy:S.uid});
+        logMove({itemId:id,name:l.text,kind:"add",unit:"adet",after:num(l.stockQty),note:"Fiş: "+label}); ok++; continue;
+      }
+      const a=agg[l.itemId]??={qty:0,price:null,unit:""}; a.qty+=num(l.stockQty); if(num(l.stockPrice)!=null) a.price=num(l.stockPrice); if(l.stockUnit) a.unit=l.stockUnit;
+    }
+    for(const [id,a] of Object.entries(agg)){
+      const it=S.items.find(i=>i.id===id); if(!it) continue;
+      await applyMove(it,"in",Math.round(a.qty*100)/100,"Fiş: "+label,{price:a.price,unit:a.unit,supplier:sups().includes(r.supplier)?r.supplier:""},true); ok++;
+    }
+    chosen.forEach(l=>l.added=true);
+    const rec={supplier:r.supplier,date:r.date,total:r.total,vatSeparate:r.vatSeparate,
+      lines:r.lines.map(l=>({text:l.text,qty:l.qty,unitPrice:l.unitPrice,amount:l.amount,itemId:l.added?l.itemId:"",stockQty:num(l.stockQty)})),by:S.uid,at:nowISO()};
+    if(!r.saved){ const ref=await db.collection("receipts").add(rec); r.saved=ref.id; }
+    else { await db.doc("receipts/"+r.saved).set(rec); }
+    sheet.state="done"; drawSheet(); toast(`${ok} kalem stoğa eklendi (${label})`);
+  }catch(e){ writeErr(e); sheet.state="review"; drawSheet(); }
+  finally{ busy=false }
+}
+$("#rcptIn").addEventListener("change",e=>{const fs=[...(e.target.files||[])]; e.target.value=""; if(fs.length) readReceipt(fs)});
+
+/* ---------- barcode ---------- */
+async function decodeFile(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=url});
+    const tries=[1600,1000,2400];
+    for(const max of tries){
+      const sc=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+      const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      if("BarcodeDetector" in window){try{const r=await new window.BarcodeDetector().detect(c);if(r&&r.length)return r[0].rawValue}catch(_){}}
+      if(window.ZXing){
+        for(const rot of [0,90]){
+          try{
+            let src=c;
+            if(rot){src=document.createElement("canvas");src.width=c.height;src.height=c.width;const x=src.getContext("2d");x.translate(src.width/2,src.height/2);x.rotate(Math.PI/2);x.drawImage(c,-c.width/2,-c.height/2)}
+            const hints=new Map();hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
+            const rd=new ZXing.MultiFormatReader();rd.setHints(hints);
+            const bb=new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(src)));
+            return rd.decode(bb).getText();
+          }catch(_){}
+        }
+      }
+    }
+    return null;
+  } finally { URL.revokeObjectURL(url) }
+}
+async function handleCode(code){
+  code=String(code||"").trim(); if(!code) return;
+  const hit=findByBarcode(code);
+  if(hit){
+    beep();
+    if(S.serial&&S.canWrite){
+      await applyMove(hit.it,S.serial,hit.b.mult||1,"",{barcode:code});
+      if(sheet&&sheet.mode==="scan"){sheet.state="idle";drawSheet();}
+      return;
+    }
+    openItem(hit.it.id,{kind:"in",amount:hit.b.mult||1,touched:true,scanned:{code,mult:hit.b.mult||1}});
+    return;
+  }
+  sheet={mode:"scan",state:"unknown",code,mult:1,pickQ:""}; drawSheet();
+}
+async function linkBarcode(itemId,code,mult){
+  const it=S.items.find(i=>i.id===itemId); if(!it) return;
+  const other=findByBarcode(code); if(other&&other.it.id!==itemId){toast(`Bu barkod zaten "${other.it.name}" ürününe bağlı.`);return}
+  const list=[...(it.barcodes||[]).filter(b=>b.code!==code),{code,mult:mult||1}];
+  try{ await db.doc("items/"+it.id).update({barcodes:list,updatedAt:nowISO(),updatedBy:S.uid}); toast(`Barkod "${it.name}" ürününe bağlandı`);
+       openItem(it.id,{kind:"in",amount:mult||1,touched:true,scanned:{code,mult:mult||1}});
+       logMove({itemId:it.id,name:it.name,kind:"edit",note:"Barkod eklendi: "+code});
+  }catch(e){writeErr(e)}
+}
+async function unlinkBarcode(code){
+  const it=S.items.find(x=>x.id===sheet.id); if(!it) return;
+  try{ await db.doc("items/"+it.id).update({barcodes:(it.barcodes||[]).filter(b=>b.code!==code),updatedAt:nowISO()}); toast("Barkod kaldırıldı"); }catch(e){writeErr(e)}
+}
+/* hardware scanners type fast and end with Enter */
+let kb={buf:"",last:0};
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&sheet){closeSheet();return}
+  const t=e.target; const typing=t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT");
+  if(t&&t.id==="bcman"&&e.key==="Enter"){e.preventDefault();handleCode(t.value);return}
+  if(typing) return;
+  const now=performance.now();
+  if(e.key==="Enter"){ if(kb.buf.length>=6){ e.preventDefault(); handleCode(kb.buf); } kb.buf=""; return; }
+  if(e.key.length===1){ if(now-kb.last>80) kb.buf=""; kb.buf+=e.key; kb.last=now; }
+});
+$("#camIn").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
+  if(!sheet||sheet.mode!=="scan") sheet={mode:"scan"};
+  sheet.state="busy"; drawSheet();
+  let code=null; try{code=await decodeFile(f)}catch(_){}
+  if(!code){sheet.state="fail";drawSheet();return}
+  handleCode(code);
+});
+
+/* ---------- writes ---------- */
+const nowISO=()=>new Date().toISOString();
+async function logMove(m){ try{ return await db.collection("moves").add({...m,by:S.uid,at:nowISO()}); }catch(e){ console.warn(e); return null } }
+function writeErr(e){
+  if(e&&e.code==="invalid_argument"){S.canWrite=false;render();}
+  toast(e&&e.code==="quota_exceeded"?"Kayıt alanı doldu, eski hareketlerin silinmesi gerekiyor.":"Kaydedilemedi. Bağlantıyı kontrol edip tekrar deneyin.");
+}
+let busy=false;
+async function applyMove(it,k,a,note,extra,silent){
+  const before=it.qty??null;
+  let after=k==="count"?a:(before||0)+(k==="in"?a:-a); if(after<0) after=0;
+  after=Math.round(after*100)/100;
+  const upd={qty:after,updatedAt:nowISO(),updatedBy:S.uid};
+  if(extra&&extra.price!=null&&extra.price!==it.price) upd.price=extra.price;
+  if(extra&&extra.supplier&&extra.supplier!==it.supplier) upd.supplier=extra.supplier;
+  if(extra&&extra.unit&&!it.unit) upd.unit=extra.unit;
+  await db.doc("items/"+it.id).update(upd);
+  if(!silent) toast(`${it.name}: ${fmt(after)} ${it.unit||""}`);
+  const m={itemId:it.id,name:it.name,kind:k,amount:a,before,after,unit:upd.unit||it.unit||"",note:note||""};
+  if(upd.supplier) m.note=(m.note?m.note+" · ":"")+`tedarikçi: ${upd.supplier}`;
+  if(extra&&extra.reason) m.reason=extra.reason;
+  if(extra&&extra.barcode) m.barcode=extra.barcode;
+  if(upd.price!=null) m.note=(m.note?m.note+" · ":"")+`fiyat ${won(it.price)} → ${won(upd.price)}`;
+  const ref=await logMove(m);
+  return {before,after,ref};
+}
+async function doMove(){
+  const it=S.items.find(x=>x.id===sheet.id); const a=num($("#amt").value);
+  if(a==null||a<0){toast("Geçerli bir miktar girin.");return;}
+  if(busy) return; busy=true;
+  const extra={reason:$("#reason")?.value,price:$("#newprice")?num($("#newprice").value):null,barcode:sheet.scanned?.code,supplier:$("#insup")?.value||"",unit:$("#inunit")?.value||""};
+  try{ await applyMove(it,sheet.kind,a,$("#mnote").value.trim(),extra); closeSheet(); }catch(e){writeErr(e)} finally{busy=false}
+}
+async function doSaveInfo(){
+  const it=S.items.find(x=>x.id===sheet.id); const f=readForm();
+  if(!f.name){toast("Ürün adı boş olamaz.");return;}
+  if(busy) return; busy=true;
+  try{ await db.doc("items/"+it.id).update({...f,updatedAt:nowISO(),updatedBy:S.uid}); toast("Bilgiler kaydedildi"); closeSheet();
+       logMove({itemId:it.id,name:f.name,kind:"edit",unit:f.unit}); }
+  catch(e){writeErr(e)} finally{busy=false}
+}
+async function doCreate(){
+  const f=readForm(); if(!f.name){toast("Ürün adı girin.");return;}
+  const qty=num(document.getElementById("f-qty").value);
+  const bc=sheet.prefill&&sheet.prefill.barcode;
+  let id=slug(f.name); if(S.items.some(i=>i.id===id)) id+="-"+Date.now().toString(36).slice(-4);
+  if(busy) return; busy=true;
+  try{ await db.doc("items/"+id).set({...f,qty,barcodes:bc?[{code:bc,mult:sheet.prefill.mult||1}]:[],createdAt:nowISO(),updatedAt:nowISO(),updatedBy:S.uid}); closeSheet(); toast("Ürün eklendi");
+       logMove({itemId:id,name:f.name,kind:"add",unit:f.unit,after:qty}); }
+  catch(e){writeErr(e)} finally{busy=false}
+}
+async function doDelete(){
+  if(!sheet.confirmDel){sheet.confirmDel=true;drawSheet();return;}
+  const it=S.items.find(x=>x.id===sheet.id);
+  try{ await db.doc("items/"+it.id).delete(); closeSheet(); toast("Ürün silindi"); }catch(e){writeErr(e)}
+}
+const COUNT_NOTE="Sayım";
+const COUNT_NOTES=["Sayım","Haftalık sayım","Sayım turu"];
+async function saveCount(){
+  const ids=Object.keys(S.countDraft).filter(k=>draftVal(k)!=null);
+  if(!ids.length||busy) return; busy=true;
+  const rows=[]; const at=nowISO();
+  for(const id of ids){
+    const it=S.items.find(i=>i.id===id); const v=num(S.countDraft[id]); if(!it||v==null||v<0){delete S.countDraft[id];continue}
+    const before=it.qty??null; const diff=before==null?null:Math.round((v-before)*100)/100;
+    const unit=it.unit||S.countUnit[id]||"";
+    const upd={qty:v,countedAt:at,countedBy:S.uid,updatedAt:at,updatedBy:S.uid}; if(!it.unit&&unit) upd.unit=unit;
+    try{ await db.doc("items/"+id).update(upd);
+         if(diff!==0) await logMove({itemId:id,name:it.name,kind:"count",amount:v,before,after:v,diff,unit,note:COUNT_NOTE});
+         delete S.countDraft[id]; delete S.countUnit[id];
+         rows.push({itemId:id,name:it.name,unit,before,after:v,diff,price:it.price??null}); }catch(e){writeErr(e);break}
+  }
+  store.set("ls-count-draft",S.countDraft);
+  if(rows.length){ try{ await db.collection("counts").add({at,by:S.uid,locations:[...new Set(rows.map(r=>S.items.find(i=>i.id===r.itemId)?.location||""))],rows}); }catch(e){console.warn(e)} }
+  busy=false; render();
+  if(rows.length){ sheet={mode:"countdone",rows,at,by:S.uid}; drawSheet(); }
+}
+function countReportHTML(rows,at,by){
+  const miss=rows.filter(r=>r.diff!=null&&r.diff<0).sort((a,b)=>(a.diff*(a.price||0))-(b.diff*(b.price||0)));
+  const extra=rows.filter(r=>r.diff!=null&&r.diff>0);
+  const same=rows.filter(r=>r.diff===0).length, first=rows.filter(r=>r.diff==null).length;
+  const val=miss.reduce((s,r)=>s+(-r.diff)*(r.price||0),0);
+  const line=(r,sign)=>`<div class="ord-line"><div><div class="rname">${esc(r.name)}</div><div class="rsub">kayıtta ${fmt(r.before)} → sayımda ${fmt(r.after)} ${esc(r.unit)}${r.price!=null&&sign<0?" · ≈ "+won(-r.diff*r.price):""}</div></div><b style="color:var(--${sign<0?"bad":"ok"})">${sign<0?"":"+"}${fmt(r.diff)} ${esc(r.unit)}</b></div>`;
+  return `<h2>Sayım sonucu</h2><p class="hint"><b>${dt(at)}</b> · Sayımı yapan: <b>${esc(nameOf(by))}</b> · ${rows.length} ürün kontrol edildi, stok sayıma göre güncellendi.</p>
+  <div class="rhead"><div><span>Kayıt dışı eksilen</span><b style="color:var(--bad)">${miss.length} ürün</b></div><div><span>Değeri (yaklaşık)</span><b>${won(val)}</b></div><div><span>Kayıttan fazla</span><b>${extra.length} ürün</b></div></div>
+  ${miss.length?`<p class="hint"><b>Çıkış'tan düşülmemiş ya da kaybolmuş mallar.</b> Sık tekrar eden ürünler varsa mutfakla konuşun.</p><div class="list" style="padding:0 14px">${miss.map(r=>line(r,-1)).join("")}</div>`:`<div class="note">Eksik yok. Çıkışlar düzgün kaydedilmiş.</div>`}
+  ${extra.length?`<p class="hint" style="margin-top:12px"><b>Kayıttan fazla çıkanlar:</b> mal girişi kaydedilmemiş olabilir (fiş okutulmamış).</p><div class="list" style="padding:0 14px">${extra.map(r=>line(r,1)).join("")}</div>`:""}
+  <p class="hint" style="margin-top:12px">${same?same+" ürün kayıtla birebir tuttu. ":""}${first?first+" ürün ilk kez sayıldı (karşılaştıracak kayıt yoktu).":""}</p>
+  <div class="actions"><button class="btn" data-act="close">Tamam</button></div>`;
+}
+function countSummary(c){
+  const rows=(c.rows||[]).map(r=>({...r,price:S.items.find(i=>i.id===r.itemId)?.price??r.price??null}));
+  const miss=rows.filter(r=>r.diff!=null&&r.diff<0);
+  return {rows,items:miss.length,value:miss.reduce((s,r)=>s+(-r.diff)*(r.price||0),0)};
+}
+function listsHTML(){
+  const sec=(key,title,ph)=>`<p class="hint" style="margin-top:14px"><b>${title}</b></p><div class="bclist">${S.lists[key].map(v=>`<div class="bcrow"><span>${esc(v)}</span><button class="btn ghost sm" data-ldel="${key}" data-lval="${esc(v)}">Kaldır</button></div>`).join("")}</div>
+    <div style="display:flex;gap:8px"><input id="ladd-${key}" placeholder="${ph}" autocomplete="off"><button class="btn sm" data-ladd="${key}">Ekle</button></div>`;
+  return `<h2>Tedarikçi ve birim listesi</h2><p class="hint">Ürün ayarlarında, mal girişinde ve sayımda bu listeler çıkar. Bir ürünün tedarikçisi ya da birimi değişirse ürüne dokunup <b>Ayarlar</b>'dan değiştirin; mal girişinde de "bu teslimatın tedarikçisi" seçilebilir. Listeden kaldırmak ürünlerdeki kaydı silmez.</p>
+  ${sec("suppliers","Tedarikçiler","Yeni tedarikçi adı")}${sec("units","Birimler","ör. tepsi, poşet, litre")}
+  <div class="actions"><button class="btn" data-act="close">Tamam</button></div>`;
+}
+async function saveLists(){ try{ await db.doc("settings/lists").set({suppliers:S.lists.suppliers,units:S.lists.units,updatedAt:nowISO(),updatedBy:S.uid}); }catch(e){writeErr(e)} }
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button,[data-act]"); if(!t) return;
+  if(t.dataset.tab){S.tab=t.dataset.tab;render();window.scrollTo(0,0);return}
+  if(t.id==="scanBtn"){openScan();return}
+  if(t.id==="rcptBtn"){$("#rcptIn").click();return}
+  if(t.dataset.act==="rstop"){rctl?.abort();return}
+  if(t.dataset.act==="rsave"){saveReceipt();return}
+  if(t.dataset.act==="rfix"){sheet.state="review";drawSheet();return}
+  if(t.dataset.status){S.status=S.status===t.dataset.status?"all":t.dataset.status;render();return}
+  if(t.dataset.group){S.groupBy=t.dataset.group;S.cat="Tümü";store.set("ls-group",S.groupBy);render();return}
+  if(t.dataset.cat){S.cat=t.dataset.cat;render();return}
+  if(t.dataset.cloc){S.countLoc=t.dataset.cloc;render();return}
+  if(t.dataset.out){quickOut(t.dataset.out);return}
+  if(t.dataset.itemOut){openItem(t.dataset.itemOut,{kind:S.outMode});return}
+  if(t.dataset.outmode){S.outMode=t.dataset.outmode;render();return}
+  if(t.dataset.act==="outscan"){S.serial="out";openScan();return}
+  if(t.dataset.cok){const it=S.items.find(i=>i.id===t.dataset.cok);if(it){if(num(S.countDraft[it.id])===it.qty&&S.countDraft[it.id]!=null)delete S.countDraft[it.id];else S.countDraft[it.id]=String(it.qty);store.set("ls-count-draft",S.countDraft);refreshCountRow(it.id)}return}
+  if(t.dataset.act==="allok"){S.items.filter(i=>(i.location||"Yeri belirtilmemiş")===S.countLoc&&i.qty!=null&&draftVal(i.id)==null).forEach(i=>S.countDraft[i.id]=String(i.qty));store.set("ls-count-draft",S.countDraft);render();return}
+  if(t.dataset.countid){const c=S.counts.find(x=>x.id===t.dataset.countid);if(c){sheet={mode:"countdone",rows:countSummary(c).rows,at:c.at,by:c.by};drawSheet()}return}
+  if(t.dataset.act==="lists"){sheet={mode:"lists"};drawSheet();return}
+  if(t.dataset.ladd){const k=t.dataset.ladd,inp=document.getElementById("ladd-"+k),v=inp.value.trim();if(v&&!S.lists[k].includes(v)){S.lists[k]=[...S.lists[k],v];saveLists();drawSheet();toast(`"${v}" eklendi`)}return}
+  if(t.dataset.ldel){const k=t.dataset.ldel,v=t.dataset.lval;S.lists[k]=S.lists[k].filter(x=>x!==v);saveLists();drawSheet();return}
+  if(t.dataset.item){openItem(t.dataset.item);return}
+  if(t.dataset.link){linkBarcode(t.dataset.link,sheet.code,num($("#pickmult")?.value)||1);return}
+  if(t.dataset.unbc){unlinkBarcode(t.dataset.unbc);return}
+  if(t.id==="fab"){openNew();return}
+  if(t.dataset.kind){sheet.kind=t.dataset.kind;if(!sheet.scanned){sheet.amount=1;sheet.touched=false}drawSheet();return}
+  if(t.dataset.step){const i=$("#amt");const v=(num(i.value)||0)+Number(t.dataset.step);i.value=Math.max(0,v);sheet.amount=Math.max(0,v);sheet.touched=true;updatePreview();return}
+  if(t.dataset.copy){
+    const txt=orderText(t.dataset.copy); const fb=document.getElementById("copyfb-"+slug(t.dataset.copy));
+    const fallback=()=>{fb.innerHTML=`<textarea class="copy" readonly>${esc(txt)}</textarea>`;const ta=fb.querySelector("textarea");ta.focus();ta.select();toast("Metni seçip kopyalayın")};
+    try{navigator.clipboard.writeText(txt).then(()=>toast("Sipariş metni kopyalandı"),fallback)}catch(_){fallback()}
+    return}
+  const act=t.dataset.act;
+  if(act==="scrim"&&e.target===t){closeSheet();return}
+  if(act==="close")closeSheet();
+  else if(act==="move")doMove();
+  else if(act==="saveinfo")doSaveInfo();
+  else if(act==="create")doCreate();
+  else if(act==="del")doDelete();
+  else if(act==="bcsearch")handleCode($("#bcman").value);
+  else if(act==="newfrombc"){const c=sheet.code,m=num($("#pickmult")?.value)||1;openNew({barcode:c,mult:m})}
+  else if(act==="savecount")saveCount();
+  else if(act==="clearcount"){S.countDraft={};store.set("ls-count-draft",{});render()}
+});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.id==="q"){S.q=t.value;const pos=t.selectionStart;render();const q=$("#q");q.focus();q.setSelectionRange(pos,pos)}
+  if(t.id==="outq"){S.outQ=t.value;const pos=t.selectionStart;render();const q=$("#outq");q.focus();q.setSelectionRange(pos,pos)}
+  if(t.id==="amt"&&sheet){sheet.amount=num(t.value)??0;sheet.touched=true;updatePreview()}
+  if(t.dataset.ord){S.orderEdits[t.dataset.ord]=t.value}
+  if(t.dataset.cnt){S.countDraft[t.dataset.cnt]=t.value;store.set("ls-count-draft",S.countDraft);t.closest(".cnt").classList.toggle("done",t.value!=="")}
+  if(t.id==="pickq"&&sheet){sheet.pickQ=t.value;sheet.mult=num($("#pickmult").value)??1;const pos=t.selectionStart;drawSheet();const q=$("#pickq");q.focus();q.setSelectionRange(pos,pos)}
+  if(t.id==="pickmult"&&sheet){sheet.mult=num(t.value)??1}
+  if(t.dataset.rl&&sheet&&sheet.r&&(t.dataset.f==="stockQty"||t.dataset.f==="stockPrice")){sheet.r.lines[+t.dataset.rl][t.dataset.f]=t.value}
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="serialOn"){S.serial=t.checked?($("#serialKind").value||"in"):null;toast(S.serial?"Seri mod açık":"Seri mod kapalı")}
+  if(t.id==="serialKind"&&S.serial){S.serial=t.value}
+  if(t.dataset.cnt){refreshCountRow(t.dataset.cnt)}
+  if(t.id==="outReason"){S.outReason=t.value}
+  if(t.dataset.cunit){S.countUnit[t.dataset.cunit]=t.value}
+  if(t.id==="rDirect"){S.rcptDirect=t.checked;store.set("ls-rcpt-direct",t.checked);toast(t.checked?"Fişler direkt stoğa eklenecek":"Fişler önce kontrol ekranında açılacak")}
+  if(t.dataset.rl&&sheet&&sheet.r){
+    const l=sheet.r.lines[+t.dataset.rl];
+    if(t.dataset.f==="include"){l.include=t.checked}
+    if(t.dataset.f==="itemId"){l.itemId=t.value;l.include=!!t.value}
+    const keep=document.querySelector(".sheet")?.scrollTop; drawSheet(); const sh=document.querySelector(".sheet"); if(sh&&keep!=null) sh.scrollTop=keep;
+  }
+});
+function refreshCountRow(id){
+  const it=S.items.find(i=>i.id===id); const el=document.getElementById("cr-"+id);
+  if(it&&el){const tmp=document.createElement("div");tmp.innerHTML=cntRow(it);el.replaceWith(tmp.firstElementChild)}
+  updateCountProgress();
+}
+function updateCountProgress(){
+  const inputs=[...document.querySelectorAll("[data-cnt]")]; const f=inputs.filter(i=>draftVal(i.dataset.cnt)!=null).length;
+  const p=$("#cntProg"),b=$("#cntBar"); if(p)p.textContent=`${f} / ${inputs.length} kontrol edildi`; if(b)b.style.width=(inputs.length?Math.round(f/inputs.length*100):0)+"%";
+  const all=Object.keys(S.countDraft).filter(k=>draftVal(k)!=null).length;
+  const a=$("#cntAll"); if(a)a.textContent=`${all} ürün kontrol edildi`;
+  document.querySelectorAll('[data-act="savecount"],[data-act="clearcount"]').forEach(x=>x.disabled=!all);
+}
+
+/* ---------- data ---------- */
+function setSync(t){$("#sync").textContent=t}
+async function resolveNames(){
+  if(!userCap) return;
+  const ids=[...new Set([...S.moves.map(m=>m.by),...S.counts.map(c=>c.by),...S.items.map(i=>i.countedBy),S.uid].filter(Boolean))].filter(id=>!(id in S.names)).slice(0,64);
+  if(!ids.length) return;
+  try{const ps=await userCap.profiles(ids); ids.forEach(id=>{S.names[id]=(ps[id]&&ps[id].name)||"Bilinmeyen kişi"});
+    if(["hareket","sayim"].includes(S.tab)&&!editingInline())render(); if(sheet&&sheet.mode==="countdone")drawSheet();}catch(_){}
+}
+function editingInline(){const a=document.activeElement;return a&&(a.id==="q"||a.id==="outq"||(a.dataset&&(a.dataset.ord||a.dataset.cnt)))}
+async function start(){
+  render();
+  const use=window.claude&&window.claude.use;
+  if(!use){S.dbMissing=true;render();setSync("Çevrimdışı önizleme");return}
+  db=await window.claude.use("db");
+  if(!db){S.dbMissing=true;render();setSync("Bağlantı yok");return}
+  userCap=await window.claude.use("user");
+  if(userCap){
+    try{S.uid=await userCap.id()}catch(_){}
+    try{const c=await userCap.can("data.write"); if(c===false) S.canWrite=false}catch(_){}
+  }
+  window.claude.use("sample").then(async sc=>{
+    if(!sc) return;
+    try{const lim=await sc.limits(); if(lim&&lim.images){sampleCap=sc;imgLimits=lim.images;$("#rcptBtn").hidden=false;
+      $("#rcptIn").accept=(lim.images.mediaTypes||[]).join(",")||"image/*";$("#rcptIn").multiple=(lim.images.maxCount||1)>1}}catch(_){}
+  });
+  const timer=setTimeout(()=>{if(!S.loaded){S.slow=true;render()}},10000);
+  db.collection("receipts").orderBy("at","desc").limit(60).onSnapshot(s=>{S.receipts=s.docs.map(d=>({id:d.id,...d.data()}))},()=>{});
+  db.collection("counts").orderBy("at","desc").limit(40).onSnapshot(s=>{S.counts=s.docs.map(d=>({id:d.id,...d.data()}));resolveNames();if(S.tab==="sayim"&&!editingInline())render()},()=>{});
+  db.doc("settings/lists").onSnapshot(d=>{if(d.exists){const x=d.data();S.lists={suppliers:Array.isArray(x.suppliers)?x.suppliers:[...SUPPLIERS],units:Array.isArray(x.units)?x.units:[...UNITS]};if(sheet&&sheet.mode==="lists")drawSheet()}},()=>{});
+  db.collection("items").onSnapshot(s=>{
+    S.items=s.docs.map(d=>({id:d.id,...d.data()})); S.loaded=true; resolveNames();
+    if(!s.metadata.fromCache){clearTimeout(timer);setSync("Canlı · herkes aynı listeyi görüyor")} else setSync("Kayıtlı kopya gösteriliyor…");
+    if(sheet&&sheet.mode==="move"&&!document.querySelector("#sheetRoot details[open]")){const a=$("#amt")?.value,n=$("#mnote")?.value;drawSheet();if(a!=null&&$("#amt"))$("#amt").value=a;if(n!=null&&$("#mnote"))$("#mnote").value=n;}
+    if(!editingInline()) render();
+  },()=>{clearTimeout(timer);S.loaded=true;setSync("Bağlantı koptu, sayfayı yeniden açın");render()});
+  db.collection("moves").orderBy("at","desc").limit(200).onSnapshot(s=>{
+    S.moves=s.docs.map(d=>({id:d.id,...d.data()})); resolveNames(); if((S.tab==="hareket"||S.tab==="cikis")&&!editingInline())render();
+  },()=>{});
+}
+start();
+</script>
+<script>
+(function(){const box=document.querySelector(".hrow > div");if(!box)return;const b=document.createElement("button");b.className="btn ghost sm";b.style.padding="8px 10px";
+let n="";try{n=localStorage.getItem("ls-staff-name")||""}catch(_){}b.textContent=n?n.split(" ")[0]:"Kişi";b.title="Kişi değiştir";b.setAttribute("aria-label","Kişi değiştir: "+n);
+b.onclick=()=>{if(confirm((n?n+" olarak giriş yapıldı. ":"")+"Kişi değiştirilsin mi?"))lsSwitchUser()};box.prepend(b)})();
+</script>
+</body></html>
