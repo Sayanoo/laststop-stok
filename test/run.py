@@ -79,16 +79,20 @@ with sync_playwright() as p:
     d = db("items/" + nid); ok("ayar kaydı (min, tedarikçi)", d.get("min") == 4 and d.get("supplier") == "Green Mart", {k: d.get(k) for k in ["min", "supplier"]})
     pg.fill("#q", ""); pg.wait_for_timeout(100)
 
-    # --- tedarikçi/birim listesi ---
-    pg.click('[data-act="lists"]'); pg.wait_for_selector("#ladd-units")
-    pg.fill("#ladd-units", "tepsi"); pg.click('[data-ladd="units"]'); pg.wait_for_timeout(200)
+    # --- tedarikçi/birim listesi (Veriler) ---
+    pg.click('[data-act="lists"]'); pg.wait_for_selector("#vadd")
+    pg.click('[data-vsec="units"]'); pg.wait_for_timeout(150)
+    pg.fill("#vadd", "tepsi"); pg.click('[data-vadd="units"]'); pg.wait_for_timeout(200)
     ok("birim eklendi", "tepsi" in (db("settings/lists") or {}).get("units", []))
-    pg.fill("#ladd-suppliers", "Hal Pazarı"); pg.click('[data-ladd="suppliers"]'); pg.wait_for_timeout(200)
+    pg.click('[data-vsec="suppliers"]'); pg.wait_for_timeout(150)
+    pg.fill("#vadd", "Hal Pazarı"); pg.click('[data-vadd="suppliers"]'); pg.wait_for_timeout(200)
     ok("tedarikçi eklendi", "Hal Pazarı" in (db("settings/lists") or {}).get("suppliers", []))
     shot("04-listeler")
-    pg.click('[data-ldel="units"][data-lval="tepsi"]'); pg.wait_for_timeout(200)
+    pg.click('[data-vsec="units"]'); pg.wait_for_timeout(150)
+    ix = db("settings/lists")["units"].index("tepsi")
+    pg.click(f'[data-vdel="{ix}"]'); pg.wait_for_timeout(150); pg.click(f'[data-vdel="{ix}"]'); pg.wait_for_timeout(200)
     ok("birim kaldırıldı", "tepsi" not in db("settings/lists").get("units", []))
-    pg.click('[data-act="close"]'); pg.wait_for_timeout(200)
+    tab("stok")
 
     # --- çıkış sekmesi ---
     tab("cikis"); shot("05-cikis")

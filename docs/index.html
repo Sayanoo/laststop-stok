@@ -193,6 +193,29 @@ textarea.copy{min-height:140px;font-size:13px;margin-top:8px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;vertical-align:-3px;margin-right:6px}
 @media (prefers-reduced-motion:no-preference){.spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}}
 @media (max-width:420px){.summary{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:1fr}.tab{font-size:12px;padding:9px 2px}.tiles{grid-template-columns:1fr 1fr}}
+.vhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0 4px}
+.vhead h2{font:800 22px var(--f-display);margin:0}
+.vsegs{margin:4px 0 12px}
+.vrow{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.vrow:first-child{border-top:0}
+.vrow input{flex:1;min-width:0}
+.vname{flex:1;min-width:0;display:grid;gap:2px}
+.vname b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vbtns{display:flex;gap:4px;flex:none}
+.ib{min-width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--sunk);color:var(--fg);font:600 15px var(--f-body);cursor:pointer;padding:0 6px}
+.ib:disabled{opacity:.3;cursor:default}
+.ib.dz{background:var(--bad);color:#fff;border-color:transparent;padding:0 10px;font-size:13px}
+.vwarn{padding:0 12px 10px;font-size:12px;color:var(--bad)}
+.vadd{display:flex;gap:8px;margin-top:10px}
+.vadd input{flex:1;min-width:0}
+.vitem{display:flex;align-items:center;gap:10px;padding-left:12px;border-top:1px solid var(--line)}
+.vitem:first-child{border-top:0}
+.vitem input[type=checkbox]{width:22px;height:22px;flex:none;margin:0;accent-color:var(--accent)}
+.vmain{flex:1;min-width:0;display:grid;gap:2px;text-align:left;background:none;border:0;color:var(--fg);font:inherit;padding:11px 12px 11px 0;cursor:pointer}
+.vmain .rsub{overflow:hidden;text-overflow:ellipsis}
+.vmiss{font-size:12px;color:var(--warn)}
+.vbulk{display:grid;gap:8px;padding:12px;border:1.5px solid var(--accent);border-radius:14px;margin:0 0 12px;background:var(--surface)}
+.vbulk-row{display:flex;gap:8px}.vbulk-row>*{flex:1;min-width:0}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
 </style>
 
@@ -201,6 +224,7 @@ textarea.copy{min-height:140px;font-size:13px;margin-top:8px}
     <div class="hrow">
       <div class="brand"><img class="logo" src="data:image/webp;base64,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" alt="Last Stop logosu"><h1>Last Stop Stok<small id="sync">Bağlanıyor…</small></h1></div>
       <div style="display:flex;gap:6px">
+      <button class="btn ghost scanbtn" id="dataBtn" aria-label="Veriler: ürün listesi, yerler, kategoriler, tedarikçiler, birimler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg><span class="lbl">Veriler</span></button>
       <button class="btn ghost scanbtn" id="rcptBtn" aria-label="Fiş fotoğrafından mal girişi" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3"/></svg><span class="lbl">Fiş</span></button>
       <button class="btn scanbtn" id="scanBtn" aria-label="Barkod okut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M17 8v8"/></svg><span class="lbl">Okut</span></button>
       </div>
@@ -235,8 +259,11 @@ const KIND_LABEL={in:"+ Geldi",out:"− Kullanıldı",waste:"✕ Zayi",count:"= 
 const S={items:[],moves:[],tab:"stok",q:"",cat:"Tümü",status:"all",groupBy:"cat",canWrite:true,uid:null,names:{},loaded:false,orderEdits:{},countLoc:LOCS[0],countDraft:{},serial:null};
 let db=null,userCap=null,sampleCap=null,imgLimits=null;
 S.receipts=[];
-S.lists={suppliers:[...SUPPLIERS],units:[...UNITS]}; S.orderLines={}; S.ordQ=""; S.counts=[]; S.countUnit={};
-const sups=()=>S.lists.suppliers, units=()=>S.lists.units;
+S.lists={suppliers:[...SUPPLIERS],units:[...UNITS],locations:[...LOCS],categories:[...CATS]}; S.orderLines={}; S.ordQ=""; S.counts=[]; S.countUnit={};
+const sups=()=>S.lists.suppliers, units=()=>S.lists.units, locList=()=>S.lists.locations, catList=()=>S.lists.categories;
+const byOrder=arr=>(a,b)=>{const x=arr.indexOf(a),y=arr.indexOf(b);return (x<0?1e3:x)-(y<0?1e3:y)||a.localeCompare(b,"tr")};
+const usedLocs=()=>[...new Set([...locList(),...S.items.map(i=>i.location).filter(Boolean)])];
+const usedCats=()=>[...new Set([...catList(),...S.items.map(i=>i.category).filter(Boolean)])];
 const withCur=(arr,v)=>v&&!arr.includes(v)?[...arr,v]:arr;
 const dt=d=>{const x=new Date(d);return x.toLocaleDateString("tr-TR",{day:"2-digit",month:"2-digit",year:"numeric"})+" "+x.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})};
 const nameOf=id=>id?(S.names[id]||"…"):"—";
@@ -280,6 +307,7 @@ function render(){
   else if(S.tab==="cikis") m.innerHTML=ro+renderOut();
   else if(S.tab==="sayim") m.innerHTML=ro+renderCount();
   else if(S.tab==="siparis") m.innerHTML=ro+renderOrders();
+  else if(S.tab==="veri") m.innerHTML=renderData();
   else m.innerHTML=renderLog();
 }
 
@@ -288,9 +316,9 @@ function renderStock(){
   const c={bad:0,warn:0,none:0,ok:0}; all.forEach(i=>c[status(i).k]++);
   const sums=[["all","Tümü",all.length],["bad","Bitti",c.bad],["warn","Az kaldı",c.warn],["none","Sayılmadı",c.none]];
   let h=`<div class="summary">${sums.map(([k,l,v])=>`<button class="sum" data-status="${k}" aria-pressed="${S.status===k}"><b>${v}</b><span>${l}</span></button>`).join("")}</div>`;
-  const chipList=S.groupBy==="loc"?["Tümü",...LOCS]:["Tümü",...CATS];
+  const chipList=S.groupBy==="loc"?["Tümü",...usedLocs()]:["Tümü",...usedCats()];
   h+=`<div class="tools"><input id="q" type="search" placeholder="Ürün ara (Türkçe, Korece veya barkod)" value="${esc(S.q)}" autocomplete="off">
-  <div class="bar"><div class="seg2" role="group" aria-label="Gruplama"><button data-group="cat" aria-pressed="${S.groupBy==="cat"}">Kategoriye göre</button><button data-group="loc" aria-pressed="${S.groupBy==="loc"}">Yere göre</button></div>${S.canWrite?`<button class="btn ghost sm" data-act="lists">Tedarikçi & birim listesi</button>`:""}</div>
+  <div class="bar"><div class="seg2" role="group" aria-label="Gruplama"><button data-group="cat" aria-pressed="${S.groupBy==="cat"}">Kategoriye göre</button><button data-group="loc" aria-pressed="${S.groupBy==="loc"}">Yere göre</button></div>${S.canWrite?`<button class="btn ghost sm" data-act="lists">Listeleri düzenle</button>`:""}</div>
   <div class="chips">${chipList.map(x=>`<button class="chip" data-cat="${esc(x)}" aria-pressed="${S.cat===x}">${esc(x)}</button>`).join("")}</div></div>`;
   const q=S.q.trim().toLocaleLowerCase("tr");
   const key=i=>S.groupBy==="loc"?(i.location||"Yeri belirtilmemiş"):(i.category||"Diğer");
@@ -298,8 +326,8 @@ function renderStock(){
   if(!all.length) return h+`<div class="note">Henüz ürün yok. Sağ alttaki <b>+ Ürün ekle</b> ile ilk ürünü ekleyin.</div>`;
   if(!rows.length) return h+`<div class="note">Bu filtreye uyan ürün yok.</div>`;
   const groups={}; rows.forEach(i=>(groups[key(i)]??=[]).push(i));
-  const order=S.groupBy==="loc"?[...LOCS,"Yeri belirtilmemiş"]:[...CATS,"Diğer"];
-  Object.keys(groups).sort((a,b)=>order.indexOf(a)-order.indexOf(b)).forEach(g=>{
+  const order=S.groupBy==="loc"?[...locList(),"Yeri belirtilmemiş"]:[...catList(),"Diğer"];
+  Object.keys(groups).sort(byOrder(order)).forEach(g=>{
     groups[g].sort((a,b)=>a.name.localeCompare(b.name,"tr"));
     h+=`<section class="group"><h2>${esc(g)} · ${groups[g].length}</h2><div class="list">${groups[g].map(rowHTML).join("")}</div></section>`;
   });
@@ -332,8 +360,8 @@ function renderOut(){
   const fav=q?[]:items.filter(i=>cnt[i.id]).sort((a,b)=>cnt[b.id]-cnt[a.id]).slice(0,10);
   if(fav.length) h+=`<section class="group"><h2>Sık kullanılanlar</h2><div class="tiles">${fav.map(tile).join("")}</div></section>`;
   const g={}; items.forEach(i=>(g[i.location||"Yeri belirtilmemiş"]??=[]).push(i));
-  const order=[...LOCS,"Yeri belirtilmemiş"];
-  Object.keys(g).sort((a,b)=>order.indexOf(a)-order.indexOf(b)).forEach(k=>{
+  const order=[...locList(),"Yeri belirtilmemiş"];
+  Object.keys(g).sort(byOrder(order)).forEach(k=>{
     g[k].sort((a,b)=>a.name.localeCompare(b.name,"tr"));
     h+=`<section class="group"><h2>${esc(k)} · ${g[k].length}</h2><div class="tiles">${g[k].map(tile).join("")}</div></section>`;
   });
@@ -365,7 +393,8 @@ function toastUndo(msg,fn){
 const draftVal=id=>{const v=S.countDraft[id];return v==null||v===""?null:v};
 function renderCount(){
   const inLoc=S.items.filter(i=>(i.location||"Yeri belirtilmemiş")===S.countLoc).sort((a,b)=>a.name.localeCompare(b.name,"tr"));
-  const locs=[...LOCS]; if(S.items.some(i=>!i.location)) locs.push("Yeri belirtilmemiş");
+  const locs=usedLocs(); if(S.items.some(i=>!i.location)) locs.push("Yeri belirtilmemiş");
+  if(!locs.includes(S.countLoc)&&locs.length) S.countLoc=locs[0];
   const filled=inLoc.filter(i=>draftVal(i.id)!=null).length;
   const allFilled=Object.keys(S.countDraft).filter(k=>draftVal(k)!=null).length;
   const left=inLoc.filter(i=>draftVal(i.id)==null&&i.qty!=null).length;
@@ -485,8 +514,8 @@ function itemForm(it){
   return `<div class="form">
   <label class="full">Ürün adı<input id="f-name" value="${esc(it.name)}" required></label>
   <label class="full">Fişteki adı (Korece)<input id="f-ko" value="${esc(it.ko)}"></label>
-  <label>Kategori<select id="f-cat">${opt(CATS,it.category||CATS[0])}</select></label>
-  <label>Durduğu yer<select id="f-loc"><option value="">—</option>${opt(LOCS,it.location)}</select></label>
+  <label>Kategori<select id="f-cat"><option value="">—</option>${opt(withCur(catList(),it.category),it.id?it.category:(it.category||catList()[0]))}</select></label>
+  <label>Durduğu yer<select id="f-loc"><option value="">—</option>${opt(withCur(locList(),it.location),it.location)}</select></label>
   <label>Tedarikçi<select id="f-sup"><option value="">—</option>${opt(withCur(sups(),it.supplier),it.supplier)}</select></label>
   <label>Birim<select id="f-unit"><option value="">— seçilmedi —</option>${opt(withCur(units(),it.unit),it.unit)}</select></label>
   <label>Ambalaj / boyut<input id="f-size" value="${esc(it.size)}" placeholder="ör. 2 kg"></label>
@@ -507,6 +536,15 @@ function drawSheet(){
   else if(sheet.mode==="receipt") h=receiptHTML();
   else if(sheet.mode==="countdone") h=countReportHTML(sheet.rows,sheet.at,sheet.by);
   else if(sheet.mode==="lists") h=listsHTML();
+  else if(sheet.mode==="edit"){
+    const it=S.items.find(x=>x.id===sheet.id); if(!it){closeSheet();return}
+    h=`<h2>${esc(it.name)}</h2><p class="hint">Ürünün sabit bilgileri. Stok miktarı burada değişmez; onun için ürüne Stok sekmesinden dokunun veya Sayım yapın.</p>
+    <p class="hint"><b>Barkodlar</b></p>
+    <div class="bclist">${(it.barcodes||[]).map(b=>`<div class="bcrow"><span><code>${esc(b.code)}</code> · 1 okutma = ${fmt(b.mult)} ${esc(it.unit||"")}</span><button class="btn ghost sm" data-unbc="${esc(b.code)}">Kaldır</button></div>`).join("")||`<span class="rsub">Barkod yok. Üstteki <b>Okut</b> ile bağlanabilir.</span>`}</div>
+    ${itemForm(it)}
+    <div class="actions"><button class="btn ${sheet.confirmDel?"danger":"ghost"}" data-act="del">${sheet.confirmDel?"Evet, ürünü sil":"Ürünü sil"}</button><button class="btn" data-act="saveinfo">Bilgileri kaydet</button></div>
+    <div class="actions" style="margin-top:6px"><button class="btn ghost" data-act="close">Vazgeç</button></div>`;
+  }
   else if(sheet.mode==="new"){
     const p=sheet.prefill||{};
     h=`<h2>Yeni ürün</h2><p class="hint">${p.barcode?`Barkod <b>${esc(p.barcode)}</b> bu ürüne bağlanacak.`:"Fişte gördüğünüz adla girin; Korece adı aramada da işe yarar."}</p>${itemForm()}
@@ -883,13 +921,110 @@ function listsHTML(){
   ${sec("suppliers","Tedarikçiler","Yeni tedarikçi adı")}${sec("units","Birimler","ör. tepsi, poşet, litre")}
   <div class="actions"><button class="btn" data-act="close">Tamam</button></div>`;
 }
-async function saveLists(){ try{ await db.doc("settings/lists").set({suppliers:S.lists.suppliers,units:S.lists.units,updatedAt:nowISO(),updatedBy:S.uid}); }catch(e){writeErr(e)} }
+async function saveLists(){ try{ await db.doc("settings/lists").set({suppliers:S.lists.suppliers,units:S.lists.units,locations:S.lists.locations,categories:S.lists.categories,updatedAt:nowISO(),updatedBy:S.uid},{merge:true}); }catch(e){writeErr(e)} }
+
+/* ---------- data page: products + fixed lists ---------- */
+S.vSec="items"; S.vQ=""; S.vMiss=false; S.vSel=new Set(); S.vEdit=null; S.vDel=null; S.vBulkF="location";
+const LKEYS={locations:{t:"Saklama yerleri",f:"location",ph:"ör. Arka depo",hint:"Stok ve Sayım bu sırayla gruplanır. Silinen yerdeki ürünler \"Yeri belirtilmemiş\" olur.",clear:true},
+  categories:{t:"Kategoriler",f:"category",ph:"ör. Tatlı",hint:"Stok listesi bu sırayla gruplanır. Silinen kategorideki ürünler \"Diğer\"e düşer.",clear:true},
+  suppliers:{t:"Tedarikçiler",f:"supplier",ph:"Yeni tedarikçi adı",hint:"Mal girişi ve siparişte bu liste çıkar. Silmek ürünlerdeki tedarikçi kaydını değiştirmez.",clear:false},
+  units:{t:"Birimler",f:"unit",ph:"ör. tepsi, litre",hint:"Silmek ürünlerdeki birimi değiştirmez. Adını değiştirirseniz o birimi kullanan ürünler de güncellenir.",clear:false}};
+const missing=i=>{const m=[];if(!i.unit)m.push("birim");if(!i.location)m.push("yer");if(!i.category)m.push("kategori");if(i.min==null)m.push("minimum");return m};
+const BULK={location:["Yer",()=>locList()],category:["Kategori",()=>catList()],supplier:["Tedarikçi",()=>sups()],unit:["Birim",()=>units()]};
+function renderData(){
+  const segs=[["items","Ürünler"],["locations","Yerler"],["categories","Kategoriler"],["suppliers","Tedarikçiler"],["units","Birimler"]];
+  let h=`<div class="vhead"><h2>Veriler</h2><button class="btn ghost sm" data-tab="stok">← Stoğa dön</button></div>
+  <p class="hint">Ürün listesi ve uygulamadaki sabit listeler. Buradaki değişiklik herkesin telefonuna anında gider.</p>
+  <div class="chips vsegs" role="group" aria-label="Bölüm">${segs.map(([k,l])=>`<button class="chip" data-vsec="${k}" aria-pressed="${S.vSec===k}">${l}</button>`).join("")}</div>`;
+  if(!S.canWrite) return h+`<div class="ro">Bu bilgileri sadece görüntüleyebiliyorsunuz.</div>`;
+  return h+(S.vSec==="items"?dataItemsHTML():dataListHTML(S.vSec));
+}
+function dataListHTML(key){
+  const L=LKEYS[key], arr=S.lists[key];
+  const used=v=>S.items.filter(i=>i[L.f]===v).length;
+  const rows=arr.map((v,ix)=>{
+    if(S.vEdit&&S.vEdit.key===key&&S.vEdit.ix===ix) return `<div class="vrow"><input id="vren" data-keep="1" value="${esc(v)}" aria-label="Yeni ad"><button class="btn sm" data-vrensave="1">Kaydet</button><button class="ib" data-vrencancel="1" aria-label="Vazgeç">✕</button></div>`;
+    const n=used(v), conf=S.vDel&&S.vDel.key===key&&S.vDel.val===v;
+    return `<div class="vrow"><div class="vname"><b>${esc(v)}</b><span class="rsub">${n?n+" ürün":"ürün yok"}</span></div>
+    <div class="vbtns"><button class="ib" data-vmv="-1" data-vix="${ix}"${ix?"":" disabled"} aria-label="Yukarı taşı">↑</button><button class="ib" data-vmv="1" data-vix="${ix}"${ix<arr.length-1?"":" disabled"} aria-label="Aşağı taşı">↓</button><button class="ib" data-vren="${ix}" aria-label="Adını değiştir">✎</button><button class="ib${conf?" dz":""}" data-vdel="${ix}" aria-label="Sil">${conf?"Sil":"✕"}</button></div></div>
+    ${conf?`<div class="vwarn">${n&&L.clear?`${n} üründen bu kayıt kaldırılacak. Silmek için tekrar <b>Sil</b>'e dokunun.`:"Silmek için tekrar <b>Sil</b>'e dokunun."}</div>`:""}`}).join("");
+  const orphan=[...new Set(S.items.map(i=>i[L.f]).filter(v=>v&&!arr.includes(v)))];
+  return `<p class="hint"><b>${L.t}</b> · ${L.hint}</p>
+  <div class="list">${rows||`<div class="vrow"><span class="rsub">Liste boş.</span></div>`}</div>
+  <div class="vadd"><input id="vadd" data-keep="1" placeholder="${esc(L.ph)}" autocomplete="off" aria-label="Yeni kayıt"><button class="btn sm" data-vadd="${key}">Ekle</button></div>
+  ${orphan.length?`<p class="hint" style="margin-top:14px">Ürünlerde kullanılan ama listede olmayanlar:</p><div class="list">${orphan.map(v=>`<div class="vrow"><div class="vname"><b>${esc(v)}</b><span class="rsub">${used(v)} ürün</span></div><button class="btn ghost sm" data-vadopt="${esc(v)}">Listeye ekle</button></div>`).join("")}</div>`:""}`;
+}
+function dataItemsHTML(){
+  const q=S.vQ.trim().toLocaleLowerCase("tr");
+  const all=S.items.slice().sort((a,b)=>a.name.localeCompare(b.name,"tr"));
+  const missN=all.filter(i=>missing(i).length).length;
+  const rows=all.filter(i=>(!S.vMiss||missing(i).length)&&(!q||[i.name,i.ko,i.supplier,i.category,i.location,i.unit].join(" ").toLocaleLowerCase("tr").includes(q)));
+  [...S.vSel].forEach(id=>{if(!S.items.some(i=>i.id===id))S.vSel.delete(id)});
+  const sel=S.vSel.size;
+  let h=`<div class="tools"><input id="vq" type="search" placeholder="Ürün ara" value="${esc(S.vQ)}" autocomplete="off">
+  <div class="bar"><div class="seg2" role="group" aria-label="Filtre"><button data-vmiss="0" aria-pressed="${!S.vMiss}">Hepsi · ${all.length}</button><button data-vmiss="1" aria-pressed="${S.vMiss}">Eksik bilgili · ${missN}</button></div><button class="btn sm" data-act="vnew">+ Yeni ürün</button></div></div>`;
+  if(sel) h+=`<div class="vbulk"><b>${sel} ürün seçili · hepsine aynı bilgiyi ver</b>
+    <div class="vbulk-row"><select id="vbf" aria-label="Alan">${Object.entries(BULK).map(([k,[l]])=>`<option value="${k}"${S.vBulkF===k?" selected":""}>${l}</option>`).join("")}</select><select id="vbv" aria-label="Değer">${BULK[S.vBulkF][1]().map(v=>`<option>${esc(v)}</option>`).join("")}</select></div>
+    <div class="vbulk-row"><button class="btn ghost sm" data-act="vselnone">Seçimi kaldır</button><button class="btn sm" data-act="vbulk">Seçilenlere uygula</button></div></div>`;
+  else h+=`<p class="hint">Düzenlemek ya da silmek için ürüne dokunun. Birden fazla ürünün yerini, kategorisini, tedarikçisini ya da birimini bir kerede değiştirmek için kutucukları işaretleyin.</p>`;
+  if(!rows.length) return h+`<div class="note">${S.vMiss?"Eksik bilgili ürün yok.":"Eşleşen ürün yok."}</div>`;
+  return h+`<div class="list">${rows.map(i=>{const m=missing(i);return `<div class="vitem"><input type="checkbox" data-vsel="${esc(i.id)}"${S.vSel.has(i.id)?" checked":""} aria-label="${esc(i.name)} seç"><button class="vmain" data-vedit="${esc(i.id)}"><span class="rname">${esc(i.name)}</span><span class="rsub">${esc([i.category,i.location,i.unit,i.supplier].filter(Boolean).join(" · "))}${i.min!=null?" · min "+fmt(i.min):""}</span>${m.length?`<span class="vmiss">Eksik: ${m.join(", ")}</span>`:""}</button></div>`}).join("")}</div>`;
+}
+const updItems=(its,f,v)=>Promise.all(its.map(i=>db.doc("items/"+i.id).update({[f]:v,updatedAt:nowISO(),updatedBy:S.uid})));
+async function listAdd(key,v){
+  v=(v||"").trim(); if(!v) return;
+  if(S.lists[key].some(x=>x.toLocaleLowerCase("tr")===v.toLocaleLowerCase("tr"))){toast("Bu zaten listede");return}
+  S.lists[key]=[...S.lists[key],v]; render(); await saveLists(); toast(`"${v}" eklendi`);
+}
+async function listRename(key,ix,nv){
+  const L=LKEYS[key], old=S.lists[key][ix]; nv=(nv||"").trim();
+  if(!nv||nv===old){S.vEdit=null;render();return}
+  if(S.lists[key].some((x,i)=>i!==ix&&x.toLocaleLowerCase("tr")===nv.toLocaleLowerCase("tr"))){toast("Bu ad zaten listede");return}
+  S.lists[key]=S.lists[key].map((x,i)=>i===ix?nv:x); S.vEdit=null;
+  if(key==="locations"&&S.countLoc===old) S.countLoc=nv;
+  if(S.cat===old) S.cat=nv;
+  render();
+  const its=S.items.filter(i=>i[L.f]===old);
+  try{ await saveLists(); await updItems(its,L.f,nv); toast(`"${old}" → "${nv}"${its.length?` · ${its.length} ürün güncellendi`:""}`) }catch(e){writeErr(e)}
+}
+async function listDelete(key,ix){
+  const L=LKEYS[key], v=S.lists[key][ix];
+  if(!(S.vDel&&S.vDel.key===key&&S.vDel.val===v)){S.vDel={key,val:v};render();return}
+  S.vDel=null; S.lists[key]=S.lists[key].filter((_,i)=>i!==ix);
+  if(S.cat===v) S.cat="Tümü";
+  render();
+  const its=L.clear?S.items.filter(i=>i[L.f]===v):[];
+  try{ await saveLists(); await updItems(its,L.f,""); toast(`"${v}" silindi${its.length?` · ${its.length} üründen kaldırıldı`:""}`) }catch(e){writeErr(e)}
+}
+async function listMove(key,ix,d){
+  const a=[...S.lists[key]], j=ix+d; if(j<0||j>=a.length) return;
+  [a[ix],a[j]]=[a[j],a[ix]]; S.lists[key]=a; render(); await saveLists();
+}
+async function bulkApply(){
+  const f=S.vBulkF, v=$("#vbv")?.value; const its=S.items.filter(i=>S.vSel.has(i.id));
+  if(!its.length||!v||busy) return; busy=true;
+  try{ await updItems(its,f,v); S.vSel.clear(); toast(`${its.length} ürünün ${BULK[f][0].toLocaleLowerCase("tr")} bilgisi "${v}" yapıldı`); render() }catch(e){writeErr(e)} finally{busy=false}
+}
 
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
   const t=e.target.closest("button,[data-act]"); if(!t) return;
   if(t.dataset.tab){S.tab=t.dataset.tab;render();window.scrollTo(0,0);return}
   if(t.id==="scanBtn"){openScan();return}
+  if(t.id==="dataBtn"){S.tab="veri";render();window.scrollTo(0,0);return}
+  if(t.dataset.vsec){S.vSec=t.dataset.vsec;S.vEdit=null;S.vDel=null;render();return}
+  if(t.dataset.vmiss){S.vMiss=t.dataset.vmiss==="1";render();return}
+  if(t.dataset.vedit){sheet={mode:"edit",id:t.dataset.vedit,confirmDel:false};drawSheet();return}
+  if(t.dataset.vmv){listMove(S.vSec,+t.dataset.vix,+t.dataset.vmv);return}
+  if(t.dataset.vren){S.vEdit={key:S.vSec,ix:+t.dataset.vren};S.vDel=null;render();const r=$("#vren");if(r){r.focus();r.select()}return}
+  if(t.dataset.vrensave){listRename(S.vEdit.key,S.vEdit.ix,$("#vren").value);return}
+  if(t.dataset.vrencancel){S.vEdit=null;render();return}
+  if(t.dataset.vdel){listDelete(S.vSec,+t.dataset.vdel);return}
+  if(t.dataset.vadd){listAdd(t.dataset.vadd,$("#vadd").value);return}
+  if(t.dataset.vadopt){listAdd(S.vSec,t.dataset.vadopt);return}
+  if(t.dataset.act==="vnew"){openNew();return}
+  if(t.dataset.act==="vselnone"){S.vSel.clear();render();return}
+  if(t.dataset.act==="vbulk"){bulkApply();return}
   if(t.id==="rcptBtn"){$("#rcptIn").click();return}
   if(t.dataset.act==="rstop"){rctl?.abort();return}
   if(t.dataset.act==="rsave"){saveReceipt();return}
@@ -905,7 +1040,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.cok){const it=S.items.find(i=>i.id===t.dataset.cok);if(it){if(num(S.countDraft[it.id])===it.qty&&S.countDraft[it.id]!=null)delete S.countDraft[it.id];else S.countDraft[it.id]=String(it.qty);store.set("ls-count-draft",S.countDraft);refreshCountRow(it.id)}return}
   if(t.dataset.act==="allok"){S.items.filter(i=>(i.location||"Yeri belirtilmemiş")===S.countLoc&&i.qty!=null&&draftVal(i.id)==null).forEach(i=>S.countDraft[i.id]=String(i.qty));store.set("ls-count-draft",S.countDraft);render();return}
   if(t.dataset.countid){const c=S.counts.find(x=>x.id===t.dataset.countid);if(c){sheet={mode:"countdone",rows:countSummary(c).rows,at:c.at,by:c.by};drawSheet()}return}
-  if(t.dataset.act==="lists"){sheet={mode:"lists"};drawSheet();return}
+  if(t.dataset.act==="lists"){S.tab="veri";S.vSec="locations";render();window.scrollTo(0,0);return}
   if(t.dataset.ladd){const k=t.dataset.ladd,inp=document.getElementById("ladd-"+k),v=inp.value.trim();if(v&&!S.lists[k].includes(v)){S.lists[k]=[...S.lists[k],v];saveLists();drawSheet();toast(`"${v}" eklendi`)}return}
   if(t.dataset.ldel){const k=t.dataset.ldel,v=t.dataset.lval;S.lists[k]=S.lists[k].filter(x=>x!==v);saveLists();drawSheet();return}
   if(t.dataset.item){openItem(t.dataset.item);return}
@@ -940,6 +1075,7 @@ document.addEventListener("input",e=>{
   if(t.id==="outq"){S.outQ=t.value;const pos=t.selectionStart;render();const q=$("#outq");q.focus();q.setSelectionRange(pos,pos)}
   if(t.id==="amt"&&sheet){sheet.amount=num(t.value)??0;sheet.touched=true;updatePreview()}
   if(t.dataset.ord){S.orderEdits[t.dataset.ord]=t.value}
+  if(t.id==="vq"){S.vQ=t.value;const pos=t.selectionStart;render();const q=$("#vq");q.focus();q.setSelectionRange(pos,pos)}
   if(t.id==="ordq"){S.ordQ=t.value;const pos=t.selectionStart;render();const q=$("#ordq");q.focus();q.setSelectionRange(pos,pos)}
   if(t.dataset.cnt){S.countDraft[t.dataset.cnt]=t.value;store.set("ls-count-draft",S.countDraft);t.closest(".cnt").classList.toggle("done",t.value!=="")}
   if(t.id==="pickq"&&sheet){sheet.pickQ=t.value;sheet.mult=num($("#pickmult").value)??1;const pos=t.selectionStart;drawSheet();const q=$("#pickq");q.focus();q.setSelectionRange(pos,pos)}
@@ -948,6 +1084,8 @@ document.addEventListener("input",e=>{
 });
 document.addEventListener("change",e=>{
   const t=e.target;
+  if(t.dataset.vsel){t.checked?S.vSel.add(t.dataset.vsel):S.vSel.delete(t.dataset.vsel);render();return}
+  if(t.id==="vbf"){S.vBulkF=t.value;render();return}
   if(t.id==="serialOn"){S.serial=t.checked?($("#serialKind").value||"in"):null;toast(S.serial?"Seri mod açık":"Seri mod kapalı")}
   if(t.id==="serialKind"&&S.serial){S.serial=t.value}
   if(t.dataset.cnt){refreshCountRow(t.dataset.cnt)}
@@ -961,6 +1099,11 @@ document.addEventListener("change",e=>{
     if(t.dataset.f==="itemId"){l.itemId=t.value;l.include=!!t.value}
     const keep=document.querySelector(".sheet")?.scrollTop; drawSheet(); const sh=document.querySelector(".sheet"); if(sh&&keep!=null) sh.scrollTop=keep;
   }
+});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter") return;
+  if(e.target.id==="vadd"){e.preventDefault();listAdd(S.vSec,e.target.value)}
+  else if(e.target.id==="vren"&&S.vEdit){e.preventDefault();listRename(S.vEdit.key,S.vEdit.ix,e.target.value)}
 });
 function refreshCountRow(id){
   const it=S.items.find(i=>i.id===id); const el=document.getElementById("cr-"+id);
@@ -984,7 +1127,7 @@ async function resolveNames(){
   try{const ps=await userCap.profiles(ids); ids.forEach(id=>{S.names[id]=(ps[id]&&ps[id].name)||"Bilinmeyen kişi"});
     if(["hareket","sayim"].includes(S.tab)&&!editingInline())render(); if(sheet&&sheet.mode==="countdone")drawSheet();}catch(_){}
 }
-function editingInline(){const a=document.activeElement;return a&&(a.id==="q"||a.id==="outq"||(a.id==="ordq")||(a.dataset&&(a.dataset.ord||a.dataset.cnt)))}
+function editingInline(){const a=document.activeElement;return a&&(a.id==="q"||a.id==="outq"||(a.id==="ordq")||a.id==="vq"||(a.dataset&&a.dataset.keep)||(a.dataset&&(a.dataset.ord||a.dataset.cnt)))}
 async function start(){
   render();
   const use=window.claude&&window.claude.use;
@@ -1004,7 +1147,7 @@ async function start(){
   const timer=setTimeout(()=>{if(!S.loaded){S.slow=true;render()}},10000);
   db.collection("receipts").orderBy("at","desc").limit(60).onSnapshot(s=>{S.receipts=s.docs.map(d=>({id:d.id,...d.data()}))},()=>{});
   db.collection("counts").orderBy("at","desc").limit(40).onSnapshot(s=>{S.counts=s.docs.map(d=>({id:d.id,...d.data()}));resolveNames();if(S.tab==="sayim"&&!editingInline())render()},()=>{});
-  db.doc("settings/lists").onSnapshot(d=>{if(d.exists){const x=d.data();S.lists={suppliers:Array.isArray(x.suppliers)?x.suppliers:[...SUPPLIERS],units:Array.isArray(x.units)?x.units:[...UNITS]};if(sheet&&sheet.mode==="lists")drawSheet()}},()=>{});
+  db.doc("settings/lists").onSnapshot(d=>{if(d.exists){const x=d.data();const A=(v,d)=>Array.isArray(v)?v:[...d];S.lists={suppliers:A(x.suppliers,SUPPLIERS),units:A(x.units,UNITS),locations:A(x.locations,LOCS),categories:A(x.categories,CATS)};if(S.tab==="veri"&&!editingInline())render()}},()=>{});
   db.collection("items").onSnapshot(s=>{
     S.items=s.docs.map(d=>({id:d.id,...d.data()})); S.loaded=true; resolveNames();
     if(!s.metadata.fromCache){clearTimeout(timer);setSync("Canlı · herkes aynı listeyi görüyor")} else setSync("Kayıtlı kopya gösteriliyor…");
